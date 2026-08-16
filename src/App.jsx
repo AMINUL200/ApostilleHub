@@ -9,7 +9,7 @@ import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
 import SiteSettings from "./pages/admin/settings/SiteSettings";
 import AdminProfile from "./pages/admin/profile/AdminProfile";
 import AboutPage from "./pages/public_page/AboutPage";
-import BlogPage from "./pages/public_page/Blogpage";
+import BlogPage from "./pages/public_page/BlogPage";
 import ContactPage from "./pages/public_page/ContactPage";
 import PricingPage from "./pages/public_page/PricingPage";
 import FAQPage from "./pages/public_page/FAQPage";
