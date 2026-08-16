@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, LogIn, ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
+import { Mail, Lock, LogIn, ArrowLeft, ShieldCheck } from "lucide-react";
 import CustomInput from "../../component/form/CustomInput";
 // import CustomInput from "../path/to/CustomInput"; // Update with your actual path
 
@@ -67,51 +68,70 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#ffba00]/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300/20 rounded-full blur-3xl"></div>
+    <div
+      className="relative min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden"
+      style={{ background: "var(--background)" }}
+    >
+      {/* Background decoration, in-brand */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl"
+          style={{ background: "rgba(212,175,55,0.14)" }}
+        />
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl"
+          style={{ background: "rgba(15,76,129,0.14)" }}
+        />
+        {/* Faint engraved line texture, consistent with the rest of the site */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" preserveAspectRatio="none" viewBox="0 0 1440 900">
+          <defs>
+            <pattern id="loginGuilloche" width="120" height="120" patternUnits="userSpaceOnUse">
+              <path d="M0,60 Q30,0 60,60 T120,60" fill="none" stroke="#0F4C81" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="1440" height="900" fill="url(#loginGuilloche)" />
+        </svg>
       </div>
 
       <div className="max-w-md w-full relative z-10">
         {/* Back button */}
         <button
           onClick={() => navigate("/")}
-          className="mb-6 flex items-center space-x-2 text-gray-600 hover:text-[#ffba00] transition-colors group"
+          className="mb-6 flex items-center space-x-2 transition-colors group"
+          style={{ color: "var(--text-secondary)" }}
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <span className="font-medium">Back to Home</span>
         </button>
 
         {/* Login Card */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="rounded-2xl p-8"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-lg)" }}
+        >
           {/* Logo and Title */}
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg">
-                <svg
-                  width="40"
-                  height="40"
-                  viewBox="0 0 48 48"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
-                    stroke="white"
-                    strokeWidth="3"
-                  />
-                  <path d="M16 24L24 14L32 24L24 34L16 24Z" fill="white" />
-                </svg>
+            <div className="flex justify-center mb-5">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center"
+                style={{ background: "var(--gradient-gold)", boxShadow: "0 10px 26px rgba(212,175,55,0.35)" }}
+              >
+                <ShieldCheck size={28} strokeWidth={1.75} style={{ color: "var(--dark)" }} />
               </div>
             </div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Welcome Back
+            <h2
+              className="text-3xl font-semibold mb-2"
+              style={{ fontFamily: "'Fraunces', serif", color: "var(--text-primary)" }}
+            >
+              Welcome back
             </h2>
-            <p className="text-gray-600">Sign in to continue to MySite</p>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              Sign in to continue to{" "}
+              <span style={{ color: "var(--primary)", fontWeight: 600 }}>ApostilleDesk</span>
+            </p>
           </div>
 
           {/* Login Form */}
@@ -128,13 +148,13 @@ const LoginPage = () => {
                 placeholder=""
                 className={
                   errors.email
-                    ? "border-red-500 focus:ring-red-200/50 focus:border-red-400"
-                    : ""
+                    ? "border-[color:var(--danger)] focus:ring-[color:var(--danger)]/20 focus:border-[color:var(--danger)]"
+                    : "focus:border-[color:var(--primary)]"
                 }
               />
               {errors.email && (
-                <p className="mt-2 text-sm text-red-600 flex items-center">
-                  <span className="inline-block w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                <p className="mt-2 text-sm flex items-center" style={{ color: "var(--danger)" }}>
+                  <span className="inline-block w-1 h-1 rounded-full mr-2" style={{ background: "var(--danger)" }} />
                   {errors.email}
                 </p>
               )}
@@ -152,13 +172,13 @@ const LoginPage = () => {
                 placeholder=""
                 className={
                   errors.password
-                    ? "border-red-500 focus:ring-red-200/50 focus:border-red-400"
-                    : ""
+                    ? "border-[color:var(--danger)] focus:ring-[color:var(--danger)]/20 focus:border-[color:var(--danger)]"
+                    : "focus:border-[color:var(--primary)]"
                 }
               />
               {errors.password && (
-                <p className="mt-2 text-sm text-red-600 flex items-center">
-                  <span className="inline-block w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                <p className="mt-2 text-sm flex items-center" style={{ color: "var(--danger)" }}>
+                  <span className="inline-block w-1 h-1 rounded-full mr-2" style={{ background: "var(--danger)" }} />
                   {errors.password}
                 </p>
               )}
@@ -171,35 +191,39 @@ const LoginPage = () => {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-[#ffba00] focus:ring-[#ffba00] border-gray-300 rounded cursor-pointer"
+                  className="h-4 w-4 rounded cursor-pointer"
+                  style={{ accentColor: "var(--primary)", borderColor: "var(--border)" }}
                 />
                 <label
                   htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-700 cursor-pointer"
+                  className="ml-2 block text-sm cursor-pointer"
+                  style={{ color: "var(--text-secondary)" }}
                 >
                   Remember me
                 </label>
               </div>
 
-              <div className="text-sm">
-                <a
-                  href="/forgot-password"
-                  className="font-semibold text-indigo-600 hover:text-[#ffba00] transition-colors"
-                >
-                  Forgot password?
-                </a>
-              </div>
+              <a
+                href="/forgot-password"
+                className="text-sm font-semibold transition-colors"
+                style={{ color: "var(--primary)" }}
+              >
+                Forgot password?
+              </a>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center space-x-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-white bg-gradient-to-r from-[#ffba00] to-[#ff9500] hover:from-black hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffba00] transition-all duration-300 font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-gold w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <div
+                    className="animate-spin rounded-full h-5 w-5 border-b-2"
+                    style={{ borderColor: "var(--dark)" }}
+                  />
                   <span>Signing in...</span>
                 </>
               ) : (
@@ -215,29 +239,41 @@ const LoginPage = () => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className="w-full" style={{ borderTop: "1px solid var(--border)" }} />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
+                <span className="px-3" style={{ background: "var(--surface)", color: "var(--text-light)" }}>
                   Or continue with
                 </span>
               </div>
             </div>
           </div>
 
+          {/* Social login */}
+          <button
+            type="button"
+            className="mt-5 w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg text-sm font-semibold transition-colors duration-200"
+            style={{ background: "var(--background)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z" />
+              <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.92l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.11C3.25 21.3 7.31 24 12 24z" />
+              <path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54v-3.1H1.27a12 12 0 0 0 0 10.75l4-3.11z" />
+              <path fill="#EA4335" d="M12 4.77c1.77 0 3.35.6 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.63l4 3.1C6.22 6.88 8.87 4.77 12 4.77z" />
+            </svg>
+            Continue with Google
+          </button>
+
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
               Don't have an account?{" "}
-              <a
-                href="/register"
-                className="font-semibold text-indigo-600 hover:text-[#ffba00] transition-colors"
-              >
+              <a href="/register" className="font-semibold transition-colors" style={{ color: "var(--primary)" }}>
                 Sign up now
               </a>
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
