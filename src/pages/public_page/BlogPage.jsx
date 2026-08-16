@@ -1,7 +1,7 @@
 import React from 'react'
 import BlogHeroSection from '../../component/blog/BlogHeroSection'
 import BlogListSection from '../../component/blog/BlogListSection'
-import BlogFAQSection from '../../component/blog/BlogFAQSEction'
+import BlogFAQSection from '../../component/blog/BlogFAQSection'
 
 const BlogPage = () => {
   return (
