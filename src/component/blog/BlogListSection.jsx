@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Stamp, FileCheck2, Plane, BadgeCheck, GraduationCap, Landmark, Clock, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const categories = [
   { name: 'All', icon: null },
@@ -38,91 +39,104 @@ const rawPosts = [
     excerpt: 'A plain-English guide to the Hague Convention stamp and the documents it covers.', 
     category: 'Apostille', 
     date: 'Aug 12, 2026', 
-    readTime: '5 min read' 
+    readTime: '5 min read',
+    slug: 'what-is-an-apostille-and-when-do-you-actually-need-one'
   },
   { 
     title: 'Apostille vs legalisation: understanding the difference', 
     excerpt: 'Not every country recognises an apostille — here\'s how to tell which process applies.', 
     category: 'Legalisation', 
     date: 'Aug 8, 2026', 
-    readTime: '6 min read' 
+    readTime: '6 min read',
+    slug: 'apostille-vs-legalisation-understanding-the-difference'
   },
   { 
     title: 'Moving abroad? The documents immigration officers ask for first', 
     excerpt: 'A checklist of the paperwork most commonly requested at the start of a visa application.', 
     category: 'Immigration', 
     date: 'Aug 4, 2026', 
-    readTime: '7 min read' 
+    readTime: '7 min read',
+    slug: 'moving-abroad-the-documents-immigration-officers-ask-for-first'
   },
   { 
     title: 'UK visa processing times, updated for 2026', 
     excerpt: 'Current turnaround times across the most common UK visa categories.', 
     category: 'Visa Processing', 
     date: 'Jul 30, 2026', 
-    readTime: '4 min read' 
+    readTime: '4 min read',
+    slug: 'uk-visa-processing-times-updated-for-2026'
   },
   { 
     title: 'Getting your degree recognised overseas', 
     excerpt: 'Why universities and employers abroad ask for apostilled academic transcripts.', 
     category: 'Education Documents', 
     date: 'Jul 26, 2026', 
-    readTime: '5 min read' 
+    readTime: '5 min read',
+    slug: 'getting-your-degree-recognised-overseas'
   },
   { 
     title: 'FCDO legalisation office: what changed this year', 
     excerpt: 'A summary of recent UK government updates affecting document legalisation.', 
     category: 'UK Updates', 
     date: 'Jul 22, 2026', 
-    readTime: '6 min read' 
+    readTime: '6 min read',
+    slug: 'fcdo-legalisation-office-what-changed-this-year'
   },
   { 
     title: 'Marriage certificates: apostille requirements by country', 
     excerpt: 'A country-by-country look at how marriage certificates need to be legalised.', 
     category: 'Apostille', 
     date: 'Jul 18, 2026', 
-    readTime: '8 min read' 
+    readTime: '8 min read',
+    slug: 'marriage-certificates-apostille-requirements-by-country'
   },
   { 
     title: 'Corporate documents and the apostille process explained', 
     excerpt: 'What businesses need to know before expanding or signing contracts abroad.', 
     category: 'Legalisation', 
     date: 'Jul 14, 2026', 
-    readTime: '6 min read' 
+    readTime: '6 min read',
+    slug: 'corporate-documents-and-the-apostille-process-explained'
   },
   { 
     title: 'Sponsoring a family member: the document trail explained', 
     excerpt: 'The paperwork chain behind most family visa and immigration sponsorships.', 
     category: 'Immigration', 
     date: 'Jul 10, 2026', 
-    readTime: '7 min read' 
+    readTime: '7 min read',
+    slug: 'sponsoring-a-family-member-the-document-trail-explained'
   },
   { 
     title: 'Student visa documents: what gets rejected most often', 
     excerpt: 'Common mistakes we see in student visa applications, and how to avoid them.', 
     category: 'Visa Processing', 
     date: 'Jul 6, 2026', 
-    readTime: '5 min read' 
+    readTime: '5 min read',
+    slug: 'student-visa-documents-what-gets-rejected-most-often'
   },
   { 
     title: 'Academic transcripts vs degree certificates: which do you need?', 
     excerpt: 'Institutions abroad often ask for one specifically — here\'s how to tell which.', 
     category: 'Education Documents', 
     date: 'Jul 2, 2026', 
-    readTime: '4 min read' 
+    readTime: '4 min read',
+    slug: 'academic-transcripts-vs-degree-certificates-which-do-you-need'
   },
   { 
     title: 'New online apostille application pilot: what to expect', 
     excerpt: 'A look at the UK government\'s pilot for faster online apostille applications.', 
     category: 'UK Updates', 
     date: 'Jun 28, 2026', 
-    readTime: '5 min read' 
+    readTime: '5 min read',
+    slug: 'new-online-apostille-application-pilot-what-to-expect'
   },
   { 
     title: 'Power of attorney documents for use abroad', 
     excerpt: 'What makes a power of attorney valid once it crosses a border.', 
     category: 'Apostille', 
     date: 'Jun 24, 2026', 
-    readTime: '6 min read' 
+    readTime: '6 min read',
+    slug: 'power-of-attorney-documents-for-use-abroad'
   },
 ];
 
@@ -142,6 +156,7 @@ const BlogListSection = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [imagesLoaded, setImagesLoaded] = useState({});
+  const navigate = useNavigate();
 
   const filteredPosts = useMemo(
     () => (activeCategory === 'All' ? rawPosts : rawPosts.filter((p) => p.category === activeCategory)),
@@ -181,6 +196,19 @@ const BlogListSection = () => {
 
   const handleImageLoad = (postTitle) => {
     setImagesLoaded(prev => ({ ...prev, [postTitle]: true }));
+  };
+
+  // Navigation handler
+  const handleReadMore = (post) => {
+    // Option 1: Navigate using slug
+    navigate(`/blog/${post.slug}`);
+    
+    // Option 2: If you want to use the title as URL param
+    // navigate(`/blog/${encodeURIComponent(post.title)}`);
+    
+    // Option 3: If you have a separate route for blog posts with ID
+    // You would need to add an id field to your posts
+    // navigate(`/blog/${post.id}`);
   };
 
   return (
@@ -239,6 +267,7 @@ const BlogListSection = () => {
                   transition={{ type: 'spring', stiffness: 280, damping: 20 }}
                   className="group rounded-2xl overflow-hidden cursor-pointer flex flex-col"
                   style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}
+                  onClick={() => handleReadMore(post)}
                 >
                   {/* Image Container */}
                   <div
