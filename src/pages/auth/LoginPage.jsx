@@ -1,18 +1,29 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, LogIn, ArrowLeft, ShieldCheck } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  LogIn,
+  ArrowLeft,
+  ShieldCheck,
+  AlertCircle,
+} from "lucide-react";
+import { useAuthStore } from "../../store/authStore";
 import CustomInput from "../../component/form/CustomInput";
-// import CustomInput from "../path/to/CustomInput"; // Update with your actual path
+import { api } from "../../services/app";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: "john@skilledworkersglobal.co.uk",
+    password: "Password@123",
   });
   const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
+  const { login } = useAuthStore();
 
   // Handle input change
   const handleChange = (e) => {
@@ -21,12 +32,16 @@ const LoginPage = () => {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
+
+    // Clear errors
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
       }));
+    }
+    if (showError) {
+      setShowError("");
     }
   };
 
@@ -37,7 +52,7 @@ const LoginPage = () => {
     if (!formData.email) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+      newErrors.email = "Please enter a valid email address";
     }
 
     if (!formData.password) {
@@ -53,17 +68,80 @@ const LoginPage = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setShowError("");
 
-    if (validateForm()) {
-      setIsLoading(true);
+    if (!validateForm()) {
+      return;
+    }
 
-      // Simulate API call
-      setTimeout(() => {
-        console.log("Login data:", formData);
-        // Add your login API call here
-        setIsLoading(false);
-        // navigate("/dashboard");
-      }, 1500);
+    setIsLoading(true);
+
+    try {
+      // Make API call
+      const response = await api.post("/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Check if login was successful
+      if (response.data.success) {
+        const { user, organization, role, token, dashboard_url } =
+          response.data.data;
+
+        // Store user data in Zustand
+        login(user, token, organization, role);
+
+        // Redirect based on role
+        if (role) {
+          const roleSlug = role.slug?.toLowerCase();
+
+          if (roleSlug === "super-admin") { 
+            navigate("/super-admin");
+          } else if (roleSlug === "administrator") {  // Organization Admin
+            navigate("/organization-admin");
+          } else if (roleSlug === "customer") {
+            navigate("/customer/dashboard");
+          } else if (roleSlug === "staff") {
+            navigate("/staff/dashboard");
+          } else if (roleSlug === "apostille_officer") {
+            navigate("/officer/dashboard");
+          } else if (roleSlug === "finance") {
+            navigate("/finance/dashboard");
+          } else if (roleSlug === "courier") {
+            navigate("/courier/dashboard");
+          } else {
+            navigate(dashboard_url || "/dashboard");
+          }
+        } else {
+          navigate(dashboard_url || "/dashboard");
+        }
+      } else {
+        setShowError(
+          response.data.message || "Login failed. Please try again.",
+        );
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+
+      // Handle different error scenarios
+      if (error.response) {
+        // Server responded with error
+        const message =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          "Invalid credentials. Please try again.";
+        setShowError(message);
+      } else if (error.request) {
+        // Request was made but no response
+        setShowError(
+          "Unable to connect to the server. Please check your internet connection.",
+        );
+      } else {
+        // Something else happened
+        setShowError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,7 +150,7 @@ const LoginPage = () => {
       className="relative min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden"
       style={{ background: "var(--background)" }}
     >
-      {/* Background decoration, in-brand */}
+      {/* Background decoration */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl"
@@ -82,11 +160,24 @@ const LoginPage = () => {
           className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl"
           style={{ background: "rgba(15,76,129,0.14)" }}
         />
-        {/* Faint engraved line texture, consistent with the rest of the site */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" preserveAspectRatio="none" viewBox="0 0 1440 900">
+        <svg
+          className="absolute inset-0 w-full h-full opacity-[0.04]"
+          preserveAspectRatio="none"
+          viewBox="0 0 1440 900"
+        >
           <defs>
-            <pattern id="loginGuilloche" width="120" height="120" patternUnits="userSpaceOnUse">
-              <path d="M0,60 Q30,0 60,60 T120,60" fill="none" stroke="#0F4C81" strokeWidth="1" />
+            <pattern
+              id="loginGuilloche"
+              width="120"
+              height="120"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M0,60 Q30,0 60,60 T120,60"
+                fill="none"
+                stroke="#0F4C81"
+                strokeWidth="1"
+              />
             </pattern>
           </defs>
           <rect width="1440" height="900" fill="url(#loginGuilloche)" />
@@ -110,29 +201,75 @@ const LoginPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="rounded-2xl p-8"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-lg)" }}
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            boxShadow: "var(--shadow-lg)",
+          }}
         >
           {/* Logo and Title */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-5">
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: "var(--gradient-gold)", boxShadow: "0 10px 26px rgba(212,175,55,0.35)" }}
+                style={{
+                  background: "var(--gradient-gold)",
+                  boxShadow: "0 10px 26px rgba(212,175,55,0.35)",
+                }}
               >
-                <ShieldCheck size={28} strokeWidth={1.75} style={{ color: "var(--dark)" }} />
+                <ShieldCheck
+                  size={28}
+                  strokeWidth={1.75}
+                  style={{ color: "var(--dark)" }}
+                />
               </div>
             </div>
             <h2
               className="text-3xl font-semibold mb-2"
-              style={{ fontFamily: "'Fraunces', serif", color: "var(--text-primary)" }}
+              style={{
+                fontFamily: "'Fraunces', serif",
+                color: "var(--text-primary)",
+              }}
             >
               Welcome back
             </h2>
             <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
               Sign in to continue to{" "}
-              <span style={{ color: "var(--primary)", fontWeight: 600 }}>ApostilleDesk</span>
+              <span style={{ color: "var(--primary)", fontWeight: 600 }}>
+                ApostilleHub
+              </span>
             </p>
           </div>
+
+          {/* Error Message */}
+          {showError && (
+            <div
+              className="mb-6 p-4 rounded-xl flex items-start gap-3"
+              style={{
+                background: "rgba(239, 68, 68, 0.08)",
+                border: "1px solid rgba(239, 68, 68, 0.2)",
+              }}
+            >
+              <AlertCircle
+                className="w-5 h-5 flex-shrink-0 mt-0.5"
+                style={{ color: "var(--danger)" }}
+              />
+              <div>
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: "var(--danger)" }}
+                >
+                  {showError}
+                </p>
+                <p
+                  className="text-xs mt-0.5"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Please check your credentials and try again.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -145,7 +282,13 @@ const LoginPage = () => {
                 autoComplete="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder=""
+                placeholder="john@example.com"
+                icon={
+                  <Mail
+                    className="w-5 h-5"
+                    style={{ color: "var(--text-light)" }}
+                  />
+                }
                 className={
                   errors.email
                     ? "border-[color:var(--danger)] focus:ring-[color:var(--danger)]/20 focus:border-[color:var(--danger)]"
@@ -153,8 +296,14 @@ const LoginPage = () => {
                 }
               />
               {errors.email && (
-                <p className="mt-2 text-sm flex items-center" style={{ color: "var(--danger)" }}>
-                  <span className="inline-block w-1 h-1 rounded-full mr-2" style={{ background: "var(--danger)" }} />
+                <p
+                  className="mt-2 text-sm flex items-center"
+                  style={{ color: "var(--danger)" }}
+                >
+                  <span
+                    className="inline-block w-1 h-1 rounded-full mr-2"
+                    style={{ background: "var(--danger)" }}
+                  />
                   {errors.email}
                 </p>
               )}
@@ -169,7 +318,13 @@ const LoginPage = () => {
                 autoComplete="current-password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder=""
+                placeholder="Enter your password"
+                icon={
+                  <Lock
+                    className="w-5 h-5"
+                    style={{ color: "var(--text-light)" }}
+                  />
+                }
                 className={
                   errors.password
                     ? "border-[color:var(--danger)] focus:ring-[color:var(--danger)]/20 focus:border-[color:var(--danger)]"
@@ -177,8 +332,14 @@ const LoginPage = () => {
                 }
               />
               {errors.password && (
-                <p className="mt-2 text-sm flex items-center" style={{ color: "var(--danger)" }}>
-                  <span className="inline-block w-1 h-1 rounded-full mr-2" style={{ background: "var(--danger)" }} />
+                <p
+                  className="mt-2 text-sm flex items-center"
+                  style={{ color: "var(--danger)" }}
+                >
+                  <span
+                    className="inline-block w-1 h-1 rounded-full mr-2"
+                    style={{ background: "var(--danger)" }}
+                  />
                   {errors.password}
                 </p>
               )}
@@ -192,7 +353,10 @@ const LoginPage = () => {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 rounded cursor-pointer"
-                  style={{ accentColor: "var(--primary)", borderColor: "var(--border)" }}
+                  style={{
+                    accentColor: "var(--primary)",
+                    borderColor: "var(--border)",
+                  }}
                 />
                 <label
                   htmlFor="remember-me"
@@ -203,13 +367,13 @@ const LoginPage = () => {
                 </label>
               </div>
 
-              <a
-                href="/forgot-password"
-                className="text-sm font-semibold transition-colors"
+              <Link
+                to="/forgot-password"
+                className="text-sm font-semibold transition-colors hover:opacity-80"
                 style={{ color: "var(--primary)" }}
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {/* Submit Button */}
@@ -239,38 +403,36 @@ const LoginPage = () => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full" style={{ borderTop: "1px solid var(--border)" }} />
+                <div
+                  className="w-full"
+                  style={{ borderTop: "1px solid var(--border)" }}
+                />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-3" style={{ background: "var(--surface)", color: "var(--text-light)" }}>
+                <span
+                  className="px-3"
+                  style={{
+                    background: "var(--surface)",
+                    color: "var(--text-light)",
+                  }}
+                >
                   Or continue with
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Social login */}
-          <button
-            type="button"
-            className="mt-5 w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg text-sm font-semibold transition-colors duration-200"
-            style={{ background: "var(--background)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z" />
-              <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.92l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.11C3.25 21.3 7.31 24 12 24z" />
-              <path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54v-3.1H1.27a12 12 0 0 0 0 10.75l4-3.11z" />
-              <path fill="#EA4335" d="M12 4.77c1.77 0 3.35.6 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.63l4 3.1C6.22 6.88 8.87 4.77 12 4.77z" />
-            </svg>
-            Continue with Google
-          </button>
-
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
             <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
               Don't have an account?{" "}
-              <a href="/register" className="font-semibold transition-colors" style={{ color: "var(--primary)" }}>
+              <Link
+                to="/register"
+                className="font-semibold transition-colors hover:opacity-80"
+                style={{ color: "var(--primary)" }}
+              >
                 Sign up now
-              </a>
+              </Link>
             </p>
           </div>
         </motion.div>

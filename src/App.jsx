@@ -5,9 +5,6 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import AppLayout from "./layout/AppLayout";
 import LandingPage from "./pages/landing/LandingPage";
 import AdminLayout from "./layout/AdminLayout";
-import AdminDashboard from "./pages/admin/dashboard/AdminDashboard";
-import SiteSettings from "./pages/admin/settings/SiteSettings";
-import AdminProfile from "./pages/admin/profile/AdminProfile";
 import AboutPage from "./pages/public_page/AboutPage";
 import BlogPage from "./pages/public_page/BlogPage";
 import ContactPage from "./pages/public_page/ContactPage";
@@ -19,6 +16,16 @@ import CustomerProfile from "./pages/customar_page/CustomerProfile";
 import CustomerOrders from "./pages/customar_page/CustomerOrders";
 import CustomerDocuments from "./pages/customar_page/CustomerDocuments";
 import CustomerPayments from "./pages/customar_page/CustomerPayments";
+import SuperAdminLayout from "./layout/SuperAdminLayout";
+import OrganizationAdminLayout from "./layout/OrganizationAdminLayout";
+import AdminDashboard from "./pages/orgnization_admin/dashboard/AdminDashboard";
+import SiteSettings from "./pages/orgnization_admin/settings/SiteSettings";
+import AdminProfile from "./pages/orgnization_admin/profile/AdminProfile";
+import OrgSMTPSettings from "./pages/orgnization_admin/settings/OrgSMTPSettings";
+import OrgDeliveryMethods from "./pages/orgnization_admin/services/OrgDeliveryMethods";
+import OrgServiceCategory from "./pages/orgnization_admin/services/OrgServiceCategory";
+import OrgService from "./pages/orgnization_admin/services/OrgService";
+import OrgProcessingOption from "./pages/orgnization_admin/services/OrgProcessingOption";
 
 const App = () => {
   return (
@@ -27,6 +34,7 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
+        {/* public route */}
         <Route element={<AppLayout />}>
           <Route index path="/" element={<LandingPage />} />
           <Route path="/about" element={<AboutPage />} />
@@ -37,23 +45,37 @@ const App = () => {
           <Route path="/faq" element={<FAQPage />} />
         </Route>
 
-
+        {/* customer route */}
         <Route path="/customer" element={<AdminLayout />}>
           <Route path="dashboard" element={<CustomerDashboard />} />
-          <Route path="profile" element={<CustomerProfile/>}/>
-          <Route path="orders" element={<CustomerOrders/>}/>
-          <Route path="documents" element={<CustomerDocuments/>}/>
-          <Route path="payments" element={<CustomerPayments/>}/>
-
+          <Route path="profile" element={<CustomerProfile />} />
+          <Route path="orders" element={<CustomerOrders />} />
+          <Route path="documents" element={<CustomerDocuments />} />
+          <Route path="payments" element={<CustomerPayments />} />
         </Route>
 
-        {/* Admin Layout */}
-        <Route path="/admin" element={<AdminLayout />}>
-          
+        {/* Admin route */}
+        <Route path="/organization-admin" element={<OrganizationAdminLayout />}>
           <Route index element={<AdminDashboard />} />
           {/* Additional admin routes can be added here */}
+
+
+          {/* ---------Service Related Route-------- */}
+          <Route path="services" element={<OrgService />} />
+          <Route path="services/categories" element={<OrgServiceCategory />} />
+          <Route path="services/processing-options" element={<OrgProcessingOption />} />
+          <Route path="services/delivery-methods" element={<OrgDeliveryMethods />} />
+
+
+          {/* ---------Setting Related---------- */}
+          <Route path="smtp" element={<OrgSMTPSettings />} />
           <Route path="site-settings" element={<SiteSettings />} />
           <Route path="profile" element={<AdminProfile />} />
+        </Route>
+
+
+        <Route path="/super-admin" element={<SuperAdminLayout />}>
+          <Route index element={<h1>Super admin dashobard </h1>} />
         </Route>
       </Routes>
     </Router>
