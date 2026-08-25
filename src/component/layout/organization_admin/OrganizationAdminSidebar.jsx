@@ -49,25 +49,25 @@ const menuItems = [
     icon: LayoutDashboard,
     path: "/organization-admin",
   },
-  {
-    id: "team",
-    label: "Team Management",
-    icon: Users,
-    children: [
-      {
-        id: "all-members",
-        label: "All Members",
-        icon: Users,
-        path: "/organization-admin/team",
-      },
-      {
-        id: "member-roles",
-        label: "Member Roles",
-        icon: UserCog,
-        path: "/organization-admin/team/roles",
-      },
-    ],
-  },
+  // {
+  //   id: "team",
+  //   label: "Team Management",
+  //   icon: Users,
+  //   children: [
+  //     {
+  //       id: "all-members",
+  //       label: "All Members",
+  //       icon: Users,
+  //       path: "/organization-admin/team",
+  //     },
+  //     {
+  //       id: "member-roles",
+  //       label: "Member Roles",
+  //       icon: UserCog,
+  //       path: "/organization-admin/team/roles",
+  //     },
+  //   ],
+  // },
   {
     id: "services",
     label: "Services",
@@ -97,80 +97,80 @@ const menuItems = [
         icon: Truck,
         path: "/organization-admin/services/delivery-methods",
       },
-      {
-        id: "pricing",
-        label: "Service Pricing",
-        icon: TagIcon,
-        path: "/organization-admin/services/pricing",
-      },
+      // {
+      //   id: "pricing",
+      //   label: "Service Pricing",
+      //   icon: TagIcon,
+      //   path: "/organization-admin/services/pricing",
+      // },
     ],
   },
-  {
-    id: "documents",
-    label: "Documents",
-    icon: FileText,
-    path: "/organization-admin/documents",
-  },
-  {
-    id: "billing",
-    label: "Billing",
-    icon: CreditCard,
-    children: [
-      {
-        id: "invoices",
-        label: "Invoices",
-        icon: FileText,
-        path: "/organization-admin/billing/invoices",
-      },
-      {
-        id: "plans",
-        label: "Plan & Pricing",
-        icon: Tag,
-        path: "/organization-admin/billing/plans",
-      },
-    ],
-  },
-  {
-    id: "analytics",
-    label: "Analytics",
-    icon: BarChart,
-    path: "/organization-admin/analytics",
-  },
-  {
-    id: "support",
-    label: "Support Tickets",
-    icon: Headphones,
-    path: "/organization-admin/support",
-  },
+  // {
+  //   id: "documents",
+  //   label: "Documents",
+  //   icon: FileText,
+  //   path: "/organization-admin/documents",
+  // },
+  // {
+  //   id: "billing",
+  //   label: "Billing",
+  //   icon: CreditCard,
+  //   children: [
+  //     {
+  //       id: "invoices",
+  //       label: "Invoices",
+  //       icon: FileText,
+  //       path: "/organization-admin/billing/invoices",
+  //     },
+  //     {
+  //       id: "plans",
+  //       label: "Plan & Pricing",
+  //       icon: Tag,
+  //       path: "/organization-admin/billing/plans",
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: "analytics",
+  //   label: "Analytics",
+  //   icon: BarChart,
+  //   path: "/organization-admin/analytics",
+  // },
+  // {
+  //   id: "support",
+  //   label: "Support Tickets",
+  //   icon: Headphones,
+  //   path: "/organization-admin/support",
+  // },
   {
     id: "settings",
     label: "Settings",
     icon: Settings,
     children: [
-      {
-        id: "general",
-        label: "General Settings",
-        icon: Settings,
-        path: "/organization-admin/settings",
-      },
+      // {
+      //   id: "general",
+      //   label: "General Settings",
+      //   icon: Settings,
+      //   path: "/organization-admin/settings",
+      // },
       {
         id: "smtp-email-setup",
         label: "SMTP Setup",
         icon: Settings,
         path: "/organization-admin/smtp",
       },
-      {
-        id: "profile",
-        label: "Organization Profile",
-        icon: Briefcase,
-        path: "/organization-admin/settings/profile",
-      },
-      {
-        id: "notifications",
-        label: "Notifications",
-        icon: Bell,
-        path: "/organization-admin/settings/notifications",
-      },
+      // {
+      //   id: "profile",
+      //   label: "Organization Profile",
+      //   icon: Briefcase,
+      //   path: "/organization-admin/settings/profile",
+      // },
+      // {
+      //   id: "notifications",
+      //   label: "Notifications",
+      //   icon: Bell,
+      //   path: "/organization-admin/settings/notifications",
+      // },
     ],
   },
 ];

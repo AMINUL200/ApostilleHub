@@ -93,173 +93,173 @@ const menuItems = [
     icon: LayoutDashboard,
     path: '/super-admin',
   },
-  {
-    id: 'users',
-    label: 'User Management',
-    icon: Users,
-    children: [
-      {
-        id: 'all-users',
-        label: 'All Users',
-        icon: Users,
-        path: '/super-admin/users',
-      },
-      {
-        id: 'user-roles',
-        label: 'User Roles',
-        icon: UserCog,
-        path: '/super-admin/users/roles',
-      },
-      {
-        id: 'permissions',
-        label: 'Permissions',
-        icon: Shield,
-        path: '/super-admin/users/permissions',
-      },
-    ],
-  },
-  {
-    id: 'orders',
-    label: 'Orders',
-    icon: ShoppingCart,
-    path: '/super-admin/orders',
-  },
-  {
-    id: 'services',
-    label: 'Services',
-    icon: Package,
-    children: [
-      {
-        id: 'all-services',
-        label: 'All Services',
-        icon: Package,
-        path: '/super-admin/services',
-      },
-      {
-        id: 'categories',
-        label: 'Categories',
-        icon: Tag,
-        path: '/super-admin/services/categories',
-      },
-      {
-        id: 'pricing',
-        label: 'Pricing Rules',
-        icon: DollarSign,
-        path: '/super-admin/services/pricing',
-      },
-      {
-        id: 'countries',
-        label: 'Countries',
-        icon: Globe,
-        path: '/super-admin/services/countries',
-      },
-    ],
-  },
-  {
-    id: 'documents',
-    label: 'Documents',
-    icon: FileText,
-    path: '/super-admin/documents',
-  },
-  {
-    id: 'payments',
-    label: 'Payments',
-    icon: CreditCard,
-    path: '/super-admin/payments',
-  },
-  {
-    id: 'analytics',
-    label: 'Analytics',
-    icon: BarChart,
-    children: [
-      {
-        id: 'overview',
-        label: 'Overview',
-        icon: TrendingUp,
-        path: '/super-admin/analytics',
-      },
-      {
-        id: 'revenue',
-        label: 'Revenue',
-        icon: DollarSign,
-        path: '/super-admin/analytics/revenue',
-      },
-      {
-        id: 'reports',
-        label: 'Reports',
-        icon: PieChart,
-        path: '/super-admin/analytics/reports',
-      },
-    ],
-  },
-  {
-    id: 'support',
-    label: 'Support Tickets',
-    icon: Headphones,
-    path: '/super-admin/support',
-  },
-  {
-    id: 'cms',
-    label: 'Content Management',
-    icon: FileText,
-    children: [
-      {
-        id: 'blog',
-        label: 'Blog Posts',
-        icon: FileText,
-        path: '/super-admin/cms/blog',
-      },
-      {
-        id: 'faq',
-        label: 'FAQ',
-        icon: HelpCircle,
-        path: '/super-admin/cms/faq',
-      },
-      {
-        id: 'testimonials',
-        label: 'Testimonials',
-        icon: StarIcon,
-        path: '/super-admin/cms/testimonials',
-      },
-    ],
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: Settings,
-    children: [
-      {
-        id: 'general',
-        label: 'General Settings',
-        icon: Settings,
-        path: '/super-admin/settings',
-      },
-      {
-        id: 'appearance',
-        label: 'Appearance',
-        icon: Palette,
-        path: '/super-admin/settings/appearance',
-      },
-      {
-        id: 'notifications',
-        label: 'Notifications',
-        icon: Bell,
-        path: '/super-admin/settings/notifications',
-      },
-      {
-        id: 'integrations',
-        label: 'Integrations',
-        icon: Globe,
-        path: '/super-admin/settings/integrations',
-      },
-      {
-        id: 'seo',
-        label: 'SEO Settings',
-        icon: Search,
-        path: '/super-admin/settings/seo',
-      },
-    ],
-  },
+  // {
+  //   id: 'users',
+  //   label: 'User Management',
+  //   icon: Users,
+  //   children: [
+  //     {
+  //       id: 'all-users',
+  //       label: 'All Users',
+  //       icon: Users,
+  //       path: '/super-admin/users',
+  //     },
+  //     {
+  //       id: 'user-roles',
+  //       label: 'User Roles',
+  //       icon: UserCog,
+  //       path: '/super-admin/users/roles',
+  //     },
+  //     {
+  //       id: 'permissions',
+  //       label: 'Permissions',
+  //       icon: Shield,
+  //       path: '/super-admin/users/permissions',
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 'orders',
+  //   label: 'Orders',
+  //   icon: ShoppingCart,
+  //   path: '/super-admin/orders',
+  // },
+  // {
+  //   id: 'services',
+  //   label: 'Services',
+  //   icon: Package,
+  //   children: [
+  //     {
+  //       id: 'all-services',
+  //       label: 'All Services',
+  //       icon: Package,
+  //       path: '/super-admin/services',
+  //     },
+  //     {
+  //       id: 'categories',
+  //       label: 'Categories',
+  //       icon: Tag,
+  //       path: '/super-admin/services/categories',
+  //     },
+  //     {
+  //       id: 'pricing',
+  //       label: 'Pricing Rules',
+  //       icon: DollarSign,
+  //       path: '/super-admin/services/pricing',
+  //     },
+  //     {
+  //       id: 'countries',
+  //       label: 'Countries',
+  //       icon: Globe,
+  //       path: '/super-admin/services/countries',
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 'documents',
+  //   label: 'Documents',
+  //   icon: FileText,
+  //   path: '/super-admin/documents',
+  // },
+  // {
+  //   id: 'payments',
+  //   label: 'Payments',
+  //   icon: CreditCard,
+  //   path: '/super-admin/payments',
+  // },
+  // {
+  //   id: 'analytics',
+  //   label: 'Analytics',
+  //   icon: BarChart,
+  //   children: [
+  //     {
+  //       id: 'overview',
+  //       label: 'Overview',
+  //       icon: TrendingUp,
+  //       path: '/super-admin/analytics',
+  //     },
+  //     {
+  //       id: 'revenue',
+  //       label: 'Revenue',
+  //       icon: DollarSign,
+  //       path: '/super-admin/analytics/revenue',
+  //     },
+  //     {
+  //       id: 'reports',
+  //       label: 'Reports',
+  //       icon: PieChart,
+  //       path: '/super-admin/analytics/reports',
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 'support',
+  //   label: 'Support Tickets',
+  //   icon: Headphones,
+  //   path: '/super-admin/support',
+  // },
+  // {
+  //   id: 'cms',
+  //   label: 'Content Management',
+  //   icon: FileText,
+  //   children: [
+  //     {
+  //       id: 'blog',
+  //       label: 'Blog Posts',
+  //       icon: FileText,
+  //       path: '/super-admin/cms/blog',
+  //     },
+  //     {
+  //       id: 'faq',
+  //       label: 'FAQ',
+  //       icon: HelpCircle,
+  //       path: '/super-admin/cms/faq',
+  //     },
+  //     {
+  //       id: 'testimonials',
+  //       label: 'Testimonials',
+  //       icon: StarIcon,
+  //       path: '/super-admin/cms/testimonials',
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: 'settings',
+  //   label: 'Settings',
+  //   icon: Settings,
+  //   children: [
+  //     {
+  //       id: 'general',
+  //       label: 'General Settings',
+  //       icon: Settings,
+  //       path: '/super-admin/settings',
+  //     },
+  //     {
+  //       id: 'appearance',
+  //       label: 'Appearance',
+  //       icon: Palette,
+  //       path: '/super-admin/settings/appearance',
+  //     },
+  //     {
+  //       id: 'notifications',
+  //       label: 'Notifications',
+  //       icon: Bell,
+  //       path: '/super-admin/settings/notifications',
+  //     },
+  //     {
+  //       id: 'integrations',
+  //       label: 'Integrations',
+  //       icon: Globe,
+  //       path: '/super-admin/settings/integrations',
+  //     },
+  //     {
+  //       id: 'seo',
+  //       label: 'SEO Settings',
+  //       icon: Search,
+  //       path: '/super-admin/settings/seo',
+  //     },
+  //   ],
+  // },
 ];
 
 // NOTE: `isOpen` / `setIsOpen` is now the SINGLE source of truth for:
