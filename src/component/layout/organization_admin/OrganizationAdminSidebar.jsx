@@ -49,25 +49,25 @@ const menuItems = [
     icon: LayoutDashboard,
     path: "/organization-admin",
   },
-  // {
-  //   id: "team",
-  //   label: "Team Management",
-  //   icon: Users,
-  //   children: [
-  //     {
-  //       id: "all-members",
-  //       label: "All Members",
-  //       icon: Users,
-  //       path: "/organization-admin/team",
-  //     },
-  //     {
-  //       id: "member-roles",
-  //       label: "Member Roles",
-  //       icon: UserCog,
-  //       path: "/organization-admin/team/roles",
-  //     },
-  //   ],
-  // },
+  {
+    id: "team",
+    label: "Staff Management",
+    icon: Users,
+    children: [
+      {
+        id: "all-staff",
+        label: "All Staff",
+        icon: Users,
+        path: "/organization-admin/staff",
+      },
+      // {
+      //   id: "member-roles",
+      //   label: "Member Roles",
+      //   icon: UserCog,
+      //   path: "/organization-admin/team/roles",
+      // },
+    ],
+  },
   {
     id: "services",
     label: "Services",

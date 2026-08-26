@@ -15,7 +15,7 @@ import { api } from "../../services/app";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    email: "john@skilledworkersglobal.co.uk",
+    email: "abcorganiztion@gmail.com",
     password: "Password@123",
   });
   const [errors, setErrors] = useState({});

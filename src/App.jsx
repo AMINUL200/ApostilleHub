@@ -26,6 +26,9 @@ import OrgDeliveryMethods from "./pages/orgnization_admin/services/OrgDeliveryMe
 import OrgServiceCategory from "./pages/orgnization_admin/services/OrgServiceCategory";
 import OrgService from "./pages/orgnization_admin/services/OrgService";
 import OrgProcessingOption from "./pages/orgnization_admin/services/OrgProcessingOption";
+import SuperAdminBlog from "./pages/super_admin/blog/SuperAdminBlog";
+import SuperAdminFaq from "./pages/super_admin/faq/SuperAdminFaq";
+import OrgTeam from "./pages/orgnization_admin/team/OrgTeam";
 
 const App = () => {
   return (
@@ -59,7 +62,7 @@ const App = () => {
           <Route index element={<AdminDashboard />} />
           {/* Additional admin routes can be added here */}
 
-
+          <Route path="staff" element={<OrgTeam />} />
           {/* ---------Service Related Route-------- */}
           <Route path="services" element={<OrgService />} />
           <Route path="services/categories" element={<OrgServiceCategory />} />
@@ -76,6 +79,8 @@ const App = () => {
 
         <Route path="/super-admin" element={<SuperAdminLayout />}>
           <Route index element={<h1>Super admin dashobard </h1>} />
+          <Route path="blogs" element={<SuperAdminBlog />} />
+          <Route path="faqs" element={<SuperAdminFaq />} />
         </Route>
       </Routes>
     </Router>

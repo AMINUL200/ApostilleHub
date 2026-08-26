@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   X,
   LayoutDashboard,
@@ -67,7 +67,7 @@ import {
   Lock,
   Key,
   Fingerprint,
-} from 'lucide-react';
+} from "lucide-react";
 
 // Logo Component
 const Logo = ({ collapsed }) => (
@@ -88,10 +88,22 @@ const Logo = ({ collapsed }) => (
 
 const menuItems = [
   {
-    id: 'dashboard',
-    label: 'Dashboard',
+    id: "dashboard",
+    label: "Dashboard",
     icon: LayoutDashboard,
-    path: '/super-admin',
+    path: "/super-admin",
+  },
+  {
+    id: "blog",
+    label: "Blog",
+    icon: Users,
+    path: "/super-admin/blogs",
+  },
+  {
+    id: "faq",
+    label: "FAQS",
+    icon: Users,
+    path: "/super-admin/faqs",
   },
   // {
   //   id: 'users',
@@ -306,9 +318,9 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
             onClick={() => toggleDropdown(item.id)}
             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group ${
               isParentActiveItem
-                ? 'bg-gradient-to-r from-[#0F4C81] to-[#1E6BB8] text-white shadow-lg shadow-[#0F4C81]/20'
-                : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
-            } ${!isOpen ? 'justify-center' : ''}`}
+                ? "bg-gradient-to-r from-[#0F4C81] to-[#1E6BB8] text-white shadow-lg shadow-[#0F4C81]/20"
+                : "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+            } ${!isOpen ? "justify-center" : ""}`}
           >
             <div className="flex items-center gap-3">
               <Icon className="w-5 h-5" />
@@ -319,7 +331,7 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
             {isOpen && (
               <ChevronDown
                 className={`w-4 h-4 transition-transform duration-200 ${
-                  isDropdownOpen ? 'rotate-180' : ''
+                  isDropdownOpen ? "rotate-180" : ""
                 }`}
               />
             )}
@@ -340,9 +352,9 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
         onClick={() => handleNavigation(item.path)}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
           isActiveItem
-            ? 'bg-gradient-to-r from-[#0F4C81] to-[#1E6BB8] text-white shadow-lg shadow-[#0F4C81]/20'
-            : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
-        } ${!isOpen ? 'justify-center' : ''}`}
+            ? "bg-gradient-to-r from-[#0F4C81] to-[#1E6BB8] text-white shadow-lg shadow-[#0F4C81]/20"
+            : "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+        } ${!isOpen ? "justify-center" : ""}`}
       >
         <Icon className="w-5 h-5" />
         {isOpen && <span className="text-sm font-medium">{item.label}</span>}
@@ -368,8 +380,8 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
         className={`fixed top-0 left-0 z-50 h-full 
           bg-gradient-to-b from-[#0B1220] to-[#0F1A2E] 
           shadow-2xl transform transition-all duration-300 ease-in-out
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          ${isOpen ? 'w-72' : 'w-20'}`}
+          ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${isOpen ? "w-72" : "w-20"}`}
       >
         {/* Header */}
         <div className="sticky top-0 z-50 bg-[#0B1220]/95 backdrop-blur-sm flex items-center justify-between p-4 border-b border-gray-700/50">
@@ -401,10 +413,10 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen }) => {
         <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-gray-700/50 bg-[#0B1220]/95">
           <button
             onClick={() => {
-              navigate('/login');
+              navigate("/login");
             }}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200 ${
-              !isOpen ? 'justify-center' : ''
+              !isOpen ? "justify-center" : ""
             }`}
           >
             <LogOut className="w-5 h-5" />
