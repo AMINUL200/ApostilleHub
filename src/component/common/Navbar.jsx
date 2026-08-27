@@ -26,8 +26,14 @@ import {
   ClipboardList,
   FileText,
   Truck,
-  Award
+  Award,
+  ShoppingCart,
+  Upload,
+  Headphones,
+  Package,
+  User2,
 } from "lucide-react";
+import { useAuthStore } from "../../store/authStore";
 
 const Navbar = ({ toggleMenu }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -37,7 +43,10 @@ const Navbar = ({ toggleMenu }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Color scheme from your index.css
+  // Get auth state from store
+  const { user, isAuthenticated, logout } = useAuthStore();
+
+  // Color scheme
   const colors = {
     primary: '#0F4C81',
     primaryHover: '#0B3D68',
@@ -71,7 +80,7 @@ const Navbar = ({ toggleMenu }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Updated navigation links for Apostille Platform
+  // Navigation links
   const navLinks = [
     { 
       id: "home", 
@@ -179,20 +188,64 @@ const Navbar = ({ toggleMenu }) => {
     },
   ];
 
-  // Auth state - Replace with your actual auth logic
-  const isAuthenticated = false;
-  const userData = { 
-    user_type: 2,
-    name: "John Doe",
-    email: "john@example.com"
-  };
+  // Customer dropdown items
+  const customerDropdownItems = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <LayoutDashboard className="w-4 h-4" />,
+      path: "/dashboard",
+    },
+    
+    {
+      id: "profile",
+      label: "My Profile",
+      icon: <UserCircle className="w-4 h-4" />,
+      path: "/profile",
+    },
+    {
+      id: "orders",
+      label: "My Orders",
+      icon: <ShoppingCart className="w-4 h-4" />,
+      path: "/orders",
+    },
+    {
+      id: "documents",
+      label: "My Documents",
+      icon: <FileText className="w-4 h-4" />,
+      path: "/documents",
+    },
+    {
+      id: "upload",
+      label: "Upload Document",
+      icon: <Upload className="w-4 h-4" />,
+      path: "/upload",
+    },
+    {
+      id: "payments",
+      label: "Payments",
+      icon: <CreditCard className="w-4 h-4" />,
+      path: "/payments",
+    },
+    {
+      id: "support",
+      label: "Support",
+      icon: <Headphones className="w-4 h-4" />,
+      path: "/support",
+    },
+    {
+      id: "track",
+      label: "Track Order",
+      icon: <Package className="w-4 h-4" />,
+      path: "/track",
+    },
+  ];
 
   // Helper functions for dropdown management
   const toggleDropdown = (dropdownId) => {
     setOpenDropdowns((prev) => {
       const newState = { ...prev };
       
-      // Close other dropdowns
       Object.keys(newState).forEach((key) => {
         if (key !== dropdownId) {
           newState[key] = false;
@@ -228,8 +281,9 @@ const Navbar = ({ toggleMenu }) => {
   };
 
   const handleLogout = () => {
-    console.log("Logging out...");
+    logout();
     navigate("/");
+    setOpenDropdowns({});
   };
 
   // Render dropdown items
@@ -304,7 +358,6 @@ const Navbar = ({ toggleMenu }) => {
             style={{ boxShadow: '0 20px 60px rgba(15, 76, 129, 0.12)' }}
             onMouseLeave={() => !isMobile && setOpenDropdowns({})}
           >
-            {/* Dropdown Header */}
             <div 
               className="px-4 py-3 bg-gradient-to-r from-[#0F4C81] to-[#1E6BB8]"
             >
@@ -316,12 +369,10 @@ const Navbar = ({ toggleMenu }) => {
               </div>
             </div>
             
-            {/* Dropdown Items */}
             <div className="py-1">
               {item.dropdown.map((dropdownItem) => renderDropdownItem(dropdownItem))}
             </div>
 
-            {/* Dropdown Footer */}
             <div 
               className="px-4 py-2 bg-gray-50/80 border-t border-gray-100"
             >
@@ -337,6 +388,21 @@ const Navbar = ({ toggleMenu }) => {
           </div>
         )}
       </div>
+    );
+  };
+
+  // Render user dropdown items
+  const renderUserDropdownItem = (item) => {
+    return (
+      <RouterLink
+        key={item.id}
+        to={item.path}
+        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#0F4C81]/5 hover:text-[#0F4C81] transition-colors"
+        onClick={() => setOpenDropdowns({})}
+      >
+        {item.icon}
+        <span>{item.label}</span>
+      </RouterLink>
     );
   };
 
@@ -356,7 +422,6 @@ const Navbar = ({ toggleMenu }) => {
             className="flex items-center gap-2 cursor-pointer group"
             onClick={() => navigate("/")}
           >
-            {/* Logo Icon */}
             <div className="relative">
               <div 
                 className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105"
@@ -367,7 +432,6 @@ const Navbar = ({ toggleMenu }) => {
               >
                 <Shield className="w-5 h-5 text-[#D4AF37]" strokeWidth={2.5} />
               </div>
-              {/* Decorative dot */}
               <div 
                 className="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-pulse"
                 style={{ background: '#D4AF37' }}
@@ -396,8 +460,8 @@ const Navbar = ({ toggleMenu }) => {
         <nav className="hidden md:flex items-center space-x-1">
           {navLinks.map((item) => renderNavItem(item))}
 
-          {/* Auth Buttons */}
-          {!isAuthenticated && (
+          {/* Auth Buttons or User Menu */}
+          {!isAuthenticated ? (
             <div className="flex items-center gap-3 ml-4">
               <RouterLink
                 to="/login"
@@ -407,7 +471,7 @@ const Navbar = ({ toggleMenu }) => {
               </RouterLink>
               <RouterLink
                 to="/register"
-                className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 style={{
                   background: 'linear-gradient(135deg, #D4AF37, #F4D03F)',
                   color: '#0B1220',
@@ -418,15 +482,9 @@ const Navbar = ({ toggleMenu }) => {
                 <span>Get Started</span>
               </RouterLink>
             </div>
-          )}
-
-          {isAuthenticated && (
+          ) : (
             <div className="flex items-center gap-3 ml-4">
-              {/* Notification Bell */}
-              <button className="p-2 text-gray-600 hover:text-[#0F4C81] rounded-lg hover:bg-[#0F4C81]/5 transition-colors relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              </button>
+              
 
               {/* User Menu */}
               <div className="relative">
@@ -438,69 +496,52 @@ const Navbar = ({ toggleMenu }) => {
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm"
                     style={{ background: 'linear-gradient(135deg, #0F4C81, #1E6BB8)' }}
                   >
-                    {userData.name?.[0] || 'U'}
+                    {user?.name?.[0] || user?.email?.[0] || 'U'}
                   </div>
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <div className="hidden sm:block text-left">
+                    <p className="text-sm font-medium text-gray-800">
+                      {user?.name || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {user?.email || ''}
+                    </p>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${openDropdowns['user-menu'] ? 'rotate-180' : ''}`} />
                 </button>
 
                 {openDropdowns['user-menu'] && (
                   <div 
                     className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
                     style={{ boxShadow: '0 20px 60px rgba(15, 76, 129, 0.12)' }}
+                    ref={(el) => (dropdownRefs.current['user-menu'] = el)}
                   >
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-800">{userData.name}</p>
-                      <p className="text-xs text-gray-500">{userData.email}</p>
+                    {/* User Info Header */}
+                    <div className="px-4 py-4 bg-gradient-to-r from-[#0F4C81] to-[#1E6BB8]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                          <span className="text-white text-lg font-bold">
+                            {user?.name?.[0] || user?.email?.[0] || 'U'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-white font-semibold text-sm">
+                            {user?.name || 'User'}
+                          </p>
+                          <p className="text-white/80 text-xs">{user?.email || ''}</p>
+                          <p className="text-white/60 text-xs mt-0.5 flex items-center gap-1">
+                            <User2 className="w-3 h-3" />
+                            Customer
+                          </p>
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Menu Items */}
                     <div className="py-1">
-                      {userData.user_type === 4 ? (
-                        // Admin Dashboard
-                        <RouterLink
-                          to="/admin/dashboard"
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#0F4C81]/5 hover:text-[#0F4C81] transition-colors"
-                          onClick={() => setOpenDropdowns({})}
-                        >
-                          <LayoutDashboard className="w-4 h-4" />
-                          <span>Admin Dashboard</span>
-                        </RouterLink>
-                      ) : (
-                        // Customer Dashboard
-                        <>
-                          <RouterLink
-                            to="/dashboard"
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#0F4C81]/5 hover:text-[#0F4C81] transition-colors"
-                            onClick={() => setOpenDropdowns({})}
-                          >
-                            <LayoutDashboard className="w-4 h-4" />
-                            <span>Dashboard</span>
-                          </RouterLink>
-                          <RouterLink
-                            to="/orders"
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#0F4C81]/5 hover:text-[#0F4C81] transition-colors"
-                            onClick={() => setOpenDropdowns({})}
-                          >
-                            <ClipboardList className="w-4 h-4" />
-                            <span>My Orders</span>
-                          </RouterLink>
-                          <RouterLink
-                            to="/documents"
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#0F4C81]/5 hover:text-[#0F4C81] transition-colors"
-                            onClick={() => setOpenDropdowns({})}
-                          >
-                            <FileText className="w-4 h-4" />
-                            <span>My Documents</span>
-                          </RouterLink>
-                          <RouterLink
-                            to="/profile"
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#0F4C81]/5 hover:text-[#0F4C81] transition-colors"
-                            onClick={() => setOpenDropdowns({})}
-                          >
-                            <UserCircle className="w-4 h-4" />
-                            <span>Profile Settings</span>
-                          </RouterLink>
-                        </>
-                      )}
+                      {customerDropdownItems.map((item) => renderUserDropdownItem(item))}
                     </div>
+
+                    {/* Logout */}
                     <div className="border-t border-gray-100 py-1">
                       <button
                         onClick={handleLogout}
@@ -534,8 +575,6 @@ const Navbar = ({ toggleMenu }) => {
           </button>
         </div>
       </div>
-
-      {/* Mobile Navigation Overlay - This will be controlled by parent */}
     </header>
   );
 };

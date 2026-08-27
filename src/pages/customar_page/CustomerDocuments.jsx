@@ -450,7 +450,7 @@ const CustomerDocuments = () => {
 
   return (
     <div className="min-h-screen" style={{ background: '#F8FAFC' }}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 lg:py-12">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-20">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

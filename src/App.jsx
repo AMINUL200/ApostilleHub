@@ -29,6 +29,9 @@ import OrgProcessingOption from "./pages/orgnization_admin/services/OrgProcessin
 import SuperAdminBlog from "./pages/super_admin/blog/SuperAdminBlog";
 import SuperAdminFaq from "./pages/super_admin/faq/SuperAdminFaq";
 import OrgTeam from "./pages/orgnization_admin/team/OrgTeam";
+import CustomerUploadDocument from "./pages/customar_page/CustomerUploadDocument";
+import CustomerTrackOrder from "./pages/customar_page/CustomerTrackOrder";
+import CustomerSupport from "./pages/customar_page/CustomerSupport";
 
 const App = () => {
   return (
@@ -46,16 +49,20 @@ const App = () => {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/faq" element={<FAQPage />} />
+
+          {/* Customer Route */}
+          <Route path="/dashboard" element={<CustomerDashboard />} />
+          <Route path="/profile" element={<CustomerProfile />} />
+          <Route path="/orders" element={<CustomerOrders />} />
+          <Route path="/documents" element={<CustomerDocuments />} />
+          <Route path="/payments" element={<CustomerPayments />} />
+          <Route path="/upload" element={<CustomerUploadDocument />} />
+          <Route path="/track" element={<CustomerTrackOrder />} />
+          <Route path="/support" element={<CustomerSupport />} />
         </Route>
 
         {/* customer route */}
-        <Route path="/customer" element={<AdminLayout />}>
-          <Route path="dashboard" element={<CustomerDashboard />} />
-          <Route path="profile" element={<CustomerProfile />} />
-          <Route path="orders" element={<CustomerOrders />} />
-          <Route path="documents" element={<CustomerDocuments />} />
-          <Route path="payments" element={<CustomerPayments />} />
-        </Route>
+        <Route path="/customer" element={<AdminLayout />}></Route>
 
         {/* Admin route */}
         <Route path="/organization-admin" element={<OrganizationAdminLayout />}>
@@ -66,16 +73,20 @@ const App = () => {
           {/* ---------Service Related Route-------- */}
           <Route path="services" element={<OrgService />} />
           <Route path="services/categories" element={<OrgServiceCategory />} />
-          <Route path="services/processing-options" element={<OrgProcessingOption />} />
-          <Route path="services/delivery-methods" element={<OrgDeliveryMethods />} />
-
+          <Route
+            path="services/processing-options"
+            element={<OrgProcessingOption />}
+          />
+          <Route
+            path="services/delivery-methods"
+            element={<OrgDeliveryMethods />}
+          />
 
           {/* ---------Setting Related---------- */}
           <Route path="smtp" element={<OrgSMTPSettings />} />
           <Route path="site-settings" element={<SiteSettings />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>
-
 
         <Route path="/super-admin" element={<SuperAdminLayout />}>
           <Route index element={<h1>Super admin dashobard </h1>} />

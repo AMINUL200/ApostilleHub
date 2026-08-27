@@ -220,7 +220,7 @@ const CustomerDashboard = () => {
   return (
     <div className="min-h-screen" style={{ background: '#F8FAFC' }}>
       {/* Dashboard Container */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 ">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12  py-12 pt-16">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
