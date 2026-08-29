@@ -32,6 +32,14 @@ import OrgTeam from "./pages/orgnization_admin/team/OrgTeam";
 import CustomerUploadDocument from "./pages/customar_page/CustomerUploadDocument";
 import CustomerTrackOrder from "./pages/customar_page/CustomerTrackOrder";
 import CustomerSupport from "./pages/customar_page/CustomerSupport";
+import ApostilleOfficerLayout from "./layout/ApostilleOfficerLayout";
+import ApostilleOfficerDashboard from "./pages/apostille_offiecer_page/ApostilleOfficerDashboard";
+import ApostillerOfficerMyOrderPage from "./pages/apostille_offiecer_page/ApostillerOfficerMyOrderPage";
+import ApostilleOfficerDocumentReview from "./pages/apostille_offiecer_page/ApostilleOfficerDocumentReview";
+import ApostilleOficerPendingDocuments from "./pages/apostille_offiecer_page/ApostilleOficerPendingDocuments";
+import ApostilleOfficerProcessingQueue from "./pages/apostille_offiecer_page/ApostilleOfficerProcessingQueue";
+import ApostilleOfiicerCompletedOrders from "./pages/apostille_offiecer_page/ApostilleOfiicerCompletedOrders";
+import ApostilleOfficerCalendar from "./pages/apostille_offiecer_page/ApostilleOfficerCalendar";
 
 const App = () => {
   return (
@@ -61,10 +69,22 @@ const App = () => {
           <Route path="/support" element={<CustomerSupport />} />
         </Route>
 
+        <Route path="/apostille-officer" element={<ApostilleOfficerLayout />}>
+          <Route index element={<ApostilleOfficerDashboard/>} />
+          <Route path="orders" element={<ApostillerOfficerMyOrderPage/>} />
+          <Route path="orders/pending" element={<ApostilleOficerPendingDocuments/>} />
+          <Route path="orders/processing" element={<ApostilleOfficerProcessingQueue/>} />
+          <Route path="orders/completed" element={<ApostilleOfiicerCompletedOrders/>} />
+          <Route path="documents/review" element={<ApostilleOfficerDocumentReview/>} />
+          <Route path="work-queue" element={<ApostilleOfficerCalendar/>} />
+        </Route>
+
+
+
         {/* customer route */}
         <Route path="/customer" element={<AdminLayout />}></Route>
 
-        {/* Admin route */}
+        {/* Admin or organization  route */}
         <Route path="/organization-admin" element={<OrganizationAdminLayout />}>
           <Route index element={<AdminDashboard />} />
           {/* Additional admin routes can be added here */}
@@ -88,11 +108,18 @@ const App = () => {
           <Route path="profile" element={<AdminProfile />} />
         </Route>
 
+          {/* Super admin route */}
         <Route path="/super-admin" element={<SuperAdminLayout />}>
           <Route index element={<h1>Super admin dashobard </h1>} />
           <Route path="blogs" element={<SuperAdminBlog />} />
           <Route path="faqs" element={<SuperAdminFaq />} />
         </Route>
+
+        
+
+
+
+
       </Routes>
     </Router>
   );
