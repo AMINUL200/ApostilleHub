@@ -40,6 +40,16 @@ import ApostilleOficerPendingDocuments from "./pages/apostille_offiecer_page/Apo
 import ApostilleOfficerProcessingQueue from "./pages/apostille_offiecer_page/ApostilleOfficerProcessingQueue";
 import ApostilleOfiicerCompletedOrders from "./pages/apostille_offiecer_page/ApostilleOfiicerCompletedOrders";
 import ApostilleOfficerCalendar from "./pages/apostille_offiecer_page/ApostilleOfficerCalendar";
+import FinanceTeamLayout from "./layout/FinanceTeamLayout";
+import FinanceTeamDashboard from "./pages/finance_team/FinanceTeamDashboard";
+import FinanceTeamManageInvoice from "./pages/finance_team/FinanceTeamManageInvoice";
+import FinanceTeamInvoiceDetails from "./pages/finance_team/FinanceTeamInvoiceDetails";
+import FinanceTeamPayment from "./pages/finance_team/FinanceTeamPayment";
+import FinanceTeamTransactions from "./pages/finance_team/FinanceTeamTransactions";
+import FinanceTeamRefunds from "./pages/finance_team/FinanceTeamRefunds";
+import FinanceTeamReconciliation from "./pages/finance_team/FinanceTeamReconciliation";
+import FinancialReports from "./pages/finance_team/FinancialReports";
+import ApostillerOfficerMyProfilePage from "./pages/apostille_offiecer_page/ApostillerOfficerMyProfilePage";
 
 const App = () => {
   return (
@@ -70,16 +80,41 @@ const App = () => {
         </Route>
 
         <Route path="/apostille-officer" element={<ApostilleOfficerLayout />}>
-          <Route index element={<ApostilleOfficerDashboard/>} />
-          <Route path="orders" element={<ApostillerOfficerMyOrderPage/>} />
-          <Route path="orders/pending" element={<ApostilleOficerPendingDocuments/>} />
-          <Route path="orders/processing" element={<ApostilleOfficerProcessingQueue/>} />
-          <Route path="orders/completed" element={<ApostilleOfiicerCompletedOrders/>} />
-          <Route path="documents/review" element={<ApostilleOfficerDocumentReview/>} />
-          <Route path="work-queue" element={<ApostilleOfficerCalendar/>} />
+          <Route index element={<ApostilleOfficerDashboard />} />
+          <Route path="orders" element={<ApostillerOfficerMyOrderPage />} />
+          <Route
+            path="orders/pending"
+            element={<ApostilleOficerPendingDocuments />}
+          />
+          <Route
+            path="orders/processing"
+            element={<ApostilleOfficerProcessingQueue />}
+          />
+          <Route
+            path="orders/completed"
+            element={<ApostilleOfiicerCompletedOrders />}
+          />
+          <Route
+            path="documents/review"
+            element={<ApostilleOfficerDocumentReview />}
+          />
+          <Route path="work-queue" element={<ApostilleOfficerCalendar />} />
+          <Route path="profile" element={<ApostillerOfficerMyProfilePage />} />
         </Route>
 
-
+        <Route
+          path="/finance-team"
+          element={<FinanceTeamLayout />}
+        >
+          <Route index element={<FinanceTeamDashboard/>} />
+          <Route path="invoices" element={<FinanceTeamManageInvoice />} />
+          <Route path="invoices/:id" element={<FinanceTeamInvoiceDetails />} />
+          <Route path="payments" element={<FinanceTeamPayment />} />
+          <Route path="transactions" element={<FinanceTeamTransactions />} />
+          <Route path="refunds" element={<FinanceTeamRefunds />} />
+          <Route path="reconciliation" element={<FinanceTeamReconciliation />} />
+          <Route path="reports" element={<FinancialReports />} />
+        </Route>
 
         {/* customer route */}
         <Route path="/customer" element={<AdminLayout />}></Route>
@@ -108,18 +143,12 @@ const App = () => {
           <Route path="profile" element={<AdminProfile />} />
         </Route>
 
-          {/* Super admin route */}
+        {/* Super admin route */}
         <Route path="/super-admin" element={<SuperAdminLayout />}>
           <Route index element={<h1>Super admin dashobard </h1>} />
           <Route path="blogs" element={<SuperAdminBlog />} />
           <Route path="faqs" element={<SuperAdminFaq />} />
         </Route>
-
-        
-
-
-
-
       </Routes>
     </Router>
   );
