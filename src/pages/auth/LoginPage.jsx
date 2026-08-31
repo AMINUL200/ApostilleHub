@@ -85,15 +85,17 @@ const LoginPage = () => {
 
       // Check if login was successful
       if (response.data.success) {
-        const { user, organization, role, token, dashboard_url } =
+        const { user, organization, roles, token, dashboard_url } =
           response.data.data;
 
         // Store user data in Zustand
-        login(user, token, organization, role);
+        login(user, token, organization, user?.roles[0]);
 
+        console.log("login roles", user?.roles[0])
         // Redirect based on role
-        if (role) {
-          const roleSlug = role.slug?.toLowerCase();
+        if (user?.roles) {
+          const roleSlug = user?.roles[0].slug?.toLowerCase();
+
 
           if (roleSlug === "super-admin") { 
             navigate("/super-admin");
@@ -103,8 +105,8 @@ const LoginPage = () => {
             navigate("/customer/dashboard");
           } else if (roleSlug === "staff") {
             navigate("/staff/dashboard");
-          } else if (roleSlug === "apostille_officer") {
-            navigate("/officer/dashboard");
+          } else if (roleSlug === "apostille-officer") {
+            navigate("/apostille-officer");
           } else if (roleSlug === "finance") {
             navigate("/finance/dashboard");
           } else if (roleSlug === "courier") {

@@ -81,6 +81,8 @@ const ROLES = [
   { value: 'customer_support', label: 'Customer Support' },
   { value: 'finance', label: 'Finance Team' },
   { value: 'courier', label: 'Courier Staff' },
+  { value: 'administrator', label: 'Administrator' },
+  { value: 'super-admin', label: 'Super Admin' },
 ];
 
 // Role badge colors
@@ -90,6 +92,8 @@ const getRoleBadgeStyle = (roleSlug) => {
     'customer_support': { bg: 'rgba(16, 185, 129, 0.1)', color: '#10B981' },
     'finance': { bg: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6' },
     'courier': { bg: 'rgba(239, 68, 68, 0.1)', color: '#EF4444' },
+    'administrator': { bg: 'rgba(212, 175, 55, 0.1)', color: '#D4AF37' },
+    'super-admin': { bg: 'rgba(139, 92, 246, 0.15)', color: '#7C3AED' },
   };
   return colors[roleSlug] || { bg: 'rgba(11, 18, 32, 0.05)', color: '#64748B' };
 };
@@ -105,6 +109,14 @@ const OrgTeam = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 20,
+    total: 0,
+    from: 0,
+    to: 0,
+  });
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
@@ -128,12 +140,12 @@ const OrgTeam = () => {
 
   const { user } = useAuthStore();
 
-  // Fetch team members on mount
+  // Fetch team members on mount and when pagination/filters change
   useEffect(() => {
     fetchTeamMembers();
-  }, []);
+  }, [currentPage, perPage, sortField, sortDirection, searchTerm, roleFilter, statusFilter]);
 
-  // Apply filters, search, and sorting
+  // Apply filters, search, and sorting (frontend for search and filters)
   useEffect(() => {
     applyFiltersAndSort();
   }, [teamMembers, searchTerm, roleFilter, statusFilter, sortField, sortDirection]);
@@ -142,16 +154,29 @@ const OrgTeam = () => {
     setIsLoading(true);
     setErrorMessage('');
     try {
-      const response = await api.get('/admin/staff');
+      const params = new URLSearchParams({
+        page: currentPage,
+        per_page: perPage,
+        sort: sortField,
+        direction: sortDirection,
+        ...(searchTerm && { search: searchTerm }),
+        ...(roleFilter !== 'All' && { role: roleFilter }),
+        ...(statusFilter !== 'All' && { status: statusFilter.toLowerCase() }),
+      });
+
+      const response = await api.get(`/admin/staff?${params}`);
       if (response.data.success) {
-        let data = [];
-        if (Array.isArray(response.data.data)) {
-          data = response.data.data;
-        } else if (response.data.data && Array.isArray(response.data.data.data)) {
-          data = response.data.data.data;
-        }
-        setTeamMembers(data);
-        setFilteredMembers(data);
+        const data = response.data.data;
+        setTeamMembers(data.data || []);
+        setFilteredMembers(data.data || []);
+        setPagination({
+          current_page: data.current_page || 1,
+          last_page: data.last_page || 1,
+          per_page: data.per_page || 20,
+          total: data.total || 0,
+          from: data.from || 0,
+          to: data.to || 0,
+        });
       }
     } catch (error) {
       console.error('Error fetching team members:', error);
@@ -164,39 +189,33 @@ const OrgTeam = () => {
   const applyFiltersAndSort = () => {
     let filtered = [...teamMembers];
 
-    // Search filter
+    // Search filter (frontend)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(member =>
-        member.user?.name?.toLowerCase().includes(term) ||
-        member.user?.email?.toLowerCase().includes(term) ||
-        member.user?.phone?.toLowerCase().includes(term) ||
-        (member.role?.slug && member.role.slug.toLowerCase().includes(term))
+        member.name?.toLowerCase().includes(term) ||
+        member.email?.toLowerCase().includes(term) ||
+        member.phone?.toLowerCase().includes(term) ||
+        (member.roles && member.roles.some(role => role.name.toLowerCase().includes(term)))
       );
     }
 
-    // Role filter
+    // Role filter (frontend)
     if (roleFilter !== 'All') {
-      filtered = filtered.filter(member => member.role?.slug === roleFilter);
+      filtered = filtered.filter(member =>
+        member.roles && member.roles.some(role => role.slug === roleFilter)
+      );
     }
 
-    // Status filter
+    // Status filter (frontend)
     if (statusFilter !== 'All') {
       filtered = filtered.filter(member => member.status === statusFilter.toLowerCase());
     }
 
-    // Sort
+    // Sort (frontend)
     filtered.sort((a, b) => {
-      let aVal = a[sortField] || a.user?.[sortField] || a.role?.[sortField];
-      let bVal = b[sortField] || b.user?.[sortField] || b.role?.[sortField];
-      
-      if (sortField === 'name' || sortField === 'email' || sortField === 'phone') {
-        aVal = a.user?.[sortField] || '';
-        bVal = b.user?.[sortField] || '';
-      } else if (sortField === 'role') {
-        aVal = a.role?.name || '';
-        bVal = b.role?.name || '';
-      }
+      let aVal = a[sortField] || '';
+      let bVal = b[sortField] || '';
       
       if (typeof aVal === 'string') {
         aVal = aVal.toLowerCase();
@@ -209,7 +228,6 @@ const OrgTeam = () => {
     });
 
     setFilteredMembers(filtered);
-    setCurrentPage(1);
   };
 
   const handleChange = (e) => {
@@ -308,10 +326,10 @@ const OrgTeam = () => {
   const handleEdit = (member) => {
     setEditingMember(member);
     setFormData({
-      name: member.user?.name || '',
-      email: member.user?.email || '',
-      phone: member.user?.phone || '',
-      role: member.role?.slug || '',
+      name: member.name || '',
+      email: member.email || '',
+      phone: member.phone || '',
+      role: member.roles && member.roles.length > 0 ? member.roles[0].slug : '',
     });
     setShowModal(true);
   };
@@ -421,7 +439,7 @@ const OrgTeam = () => {
 
   return (
     <div className="min-h-screen" style={{ background: '#F8FAFC' }}>
-      <div className="max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-12">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 lg:py-12">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -676,11 +694,11 @@ const OrgTeam = () => {
                                   color: 'white'
                                 }}>
                                   <span className="text-sm font-bold">
-                                    {member.user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                                    {member.name?.split(' ').map(n => n[0]).join('') || 'U'}
                                   </span>
                                 </div>
                                 <span className="text-sm font-medium" style={{ color: '#0B1220' }}>
-                                  {member.user?.name || 'N/A'}
+                                  {member.name || 'N/A'}
                                 </span>
                               </div>
                             </td>
@@ -688,7 +706,7 @@ const OrgTeam = () => {
                               <div className="flex items-center gap-2">
                                 <Mail className="w-4 h-4" style={{ color: '#94A3B8' }} />
                                 <span className="text-sm" style={{ color: '#64748B' }}>
-                                  {member.user?.email || 'N/A'}
+                                  {member.email || 'N/A'}
                                 </span>
                               </div>
                             </td>
@@ -696,12 +714,16 @@ const OrgTeam = () => {
                               <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4" style={{ color: '#94A3B8' }} />
                                 <span className="text-sm" style={{ color: '#64748B' }}>
-                                  {member.user?.phone || 'N/A'}
+                                  {member.phone || 'N/A'}
                                 </span>
                               </div>
                             </td>
                             <td className="py-3.5 px-4">
-                              {getRoleBadge(member.role?.slug || '')}
+                              {member.roles && member.roles.length > 0 ? (
+                                getRoleBadge(member.roles[0].slug)
+                              ) : (
+                                <span className="text-sm text-[#94A3B8]">No Role</span>
+                              )}
                             </td>
                             <td className="py-3.5 px-4">
                               {getStatusBadge(member.status)}
@@ -749,11 +771,10 @@ const OrgTeam = () => {
               </div>
 
               {/* Pagination */}
-              {totalItems > 0 && (
+              {pagination.total > 0 && (
                 <div className="flex items-center justify-between px-4 py-3 border-t flex-wrap gap-4" style={{ borderColor: '#E2E8F0' }}>
                   <span className="text-sm" style={{ color: '#64748B' }}>
-                    Showing {((currentPage - 1) * perPage) + 1} to{' '}
-                    {Math.min(currentPage * perPage, totalItems)} of {totalItems} members
+                    Showing {pagination.from} to {pagination.to} of {pagination.total} members
                   </span>
                   <div className="flex items-center gap-1">
                     <button
@@ -764,14 +785,14 @@ const OrgTeam = () => {
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    {Array.from({ length: Math.min(pagination.last_page, 5) }, (_, i) => {
                       let pageNum;
-                      if (totalPages <= 5) {
+                      if (pagination.last_page <= 5) {
                         pageNum = i + 1;
                       } else if (currentPage <= 3) {
                         pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
+                      } else if (currentPage >= pagination.last_page - 2) {
+                        pageNum = pagination.last_page - 4 + i;
                       } else {
                         pageNum = currentPage - 2 + i;
                       }
@@ -796,8 +817,8 @@ const OrgTeam = () => {
                       );
                     })}
                     <button
-                      onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
-                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(Math.min(currentPage + 1, pagination.last_page))}
+                      disabled={currentPage === pagination.last_page}
                       className="p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                       style={{ color: '#64748B' }}
                     >
@@ -863,9 +884,9 @@ const OrgTeam = () => {
                           value={formData.name}
                           onChange={handleChange}
                           placeholder="e.g., John Smith"
-                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all ${
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all ${(
                             formErrors.name ? 'border-red-500' : 'border-[#E2E8F0]'
-                          }`}
+                          )}`}
                           style={{ color: '#0B1220' }}
                         />
                       </div>
@@ -1010,7 +1031,7 @@ const OrgTeam = () => {
 
                 <p className="text-sm mb-6" style={{ color: '#64748B' }}>
                   Are you sure you want to remove <span className="font-semibold" style={{ color: '#0B1220' }}>
-                    "{selectedMember.user?.name}"
+                    "{selectedMember.name}"
                   </span> from the team? This action cannot be undone.
                 </p>
 

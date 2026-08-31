@@ -50,6 +50,7 @@ import FinanceTeamRefunds from "./pages/finance_team/FinanceTeamRefunds";
 import FinanceTeamReconciliation from "./pages/finance_team/FinanceTeamReconciliation";
 import FinancialReports from "./pages/finance_team/FinancialReports";
 import ApostillerOfficerMyProfilePage from "./pages/apostille_offiecer_page/ApostillerOfficerMyProfilePage";
+import ManageCountryRegion from "./pages/orgnization_admin/country_region/ManageCountryRegion";
 
 const App = () => {
   return (
@@ -79,6 +80,8 @@ const App = () => {
           <Route path="/support" element={<CustomerSupport />} />
         </Route>
 
+
+        {/* apostille officer */}
         <Route path="/apostille-officer" element={<ApostilleOfficerLayout />}>
           <Route index element={<ApostilleOfficerDashboard />} />
           <Route path="orders" element={<ApostillerOfficerMyOrderPage />} />
@@ -102,6 +105,8 @@ const App = () => {
           <Route path="profile" element={<ApostillerOfficerMyProfilePage />} />
         </Route>
 
+
+      {/* finance route  */}
         <Route
           path="/finance-team"
           element={<FinanceTeamLayout />}
@@ -116,9 +121,7 @@ const App = () => {
           <Route path="reports" element={<FinancialReports />} />
         </Route>
 
-        {/* customer route */}
-        <Route path="/customer" element={<AdminLayout />}></Route>
-
+        
         {/* Admin or organization  route */}
         <Route path="/organization-admin" element={<OrganizationAdminLayout />}>
           <Route index element={<AdminDashboard />} />
@@ -135,6 +138,10 @@ const App = () => {
           <Route
             path="services/delivery-methods"
             element={<OrgDeliveryMethods />}
+          />
+          <Route
+            path="country"
+            element={<ManageCountryRegion />}
           />
 
           {/* ---------Setting Related---------- */}

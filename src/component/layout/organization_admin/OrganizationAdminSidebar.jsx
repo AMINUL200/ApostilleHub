@@ -23,6 +23,7 @@ import {
   Truck,
   Clock,
   Folder,
+  Globe2,
 } from "lucide-react";
 
 // Logo Component
@@ -60,12 +61,6 @@ const menuItems = [
         icon: Users,
         path: "/organization-admin/staff",
       },
-      // {
-      //   id: "member-roles",
-      //   label: "Member Roles",
-      //   icon: UserCog,
-      //   path: "/organization-admin/team/roles",
-      // },
     ],
   },
   {
@@ -105,6 +100,13 @@ const menuItems = [
       // },
     ],
   },
+  {
+    id: "country",
+    label: "Country",
+    icon: Globe2,
+    path: "/organization-admin/country",
+  },
+
   // {
   //   id: "documents",
   //   label: "Documents",
@@ -147,12 +149,6 @@ const menuItems = [
     label: "Settings",
     icon: Settings,
     children: [
-      // {
-      //   id: "general",
-      //   label: "General Settings",
-      //   icon: Settings,
-      //   path: "/organization-admin/settings",
-      // },
       {
         id: "smtp-email-setup",
         label: "SMTP Setup",
