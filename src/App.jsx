@@ -51,6 +51,12 @@ import FinanceTeamReconciliation from "./pages/finance_team/FinanceTeamReconcili
 import FinancialReports from "./pages/finance_team/FinancialReports";
 import ApostillerOfficerMyProfilePage from "./pages/apostille_offiecer_page/ApostillerOfficerMyProfilePage";
 import ManageCountryRegion from "./pages/orgnization_admin/country_region/ManageCountryRegion";
+import SuperAdminManageApostilleOfficer from "./pages/super_admin/apostille_officer/SuperAdminManageApostilleOfficer";
+import SuperAdminManageApostilleOfficerDetails from "./pages/super_admin/apostille_officer/SuperAdminManageApostilleOfficerDetails";
+import ManageDocumentRequired from "./pages/orgnization_admin/services/ManageDocumentRequired";
+import OrgDeliveryMethodsPrice from "./pages/orgnization_admin/services/OrgDeliveryMethodsPrice";
+import SuperAdminManageApostilleOfficerServicePrice from "./pages/super_admin/apostille_officer/SuperAdminManageApostilleOfficerServicePrice";
+import ApostilleOfficerServicePricing from "./pages/apostille_offiecer_page/ApostilleOfficerServicePricing";
 
 const App = () => {
   return (
@@ -80,7 +86,6 @@ const App = () => {
           <Route path="/support" element={<CustomerSupport />} />
         </Route>
 
-
         {/* apostille officer */}
         <Route path="/apostille-officer" element={<ApostilleOfficerLayout />}>
           <Route index element={<ApostilleOfficerDashboard />} />
@@ -101,34 +106,87 @@ const App = () => {
             path="documents/review"
             element={<ApostilleOfficerDocumentReview />}
           />
+          <Route path="service/region-price" element={<ApostilleOfficerServicePricing />} />
           <Route path="work-queue" element={<ApostilleOfficerCalendar />} />
           <Route path="profile" element={<ApostillerOfficerMyProfilePage />} />
         </Route>
 
-
-      {/* finance route  */}
-        <Route
-          path="/finance-team"
-          element={<FinanceTeamLayout />}
-        >
-          <Route index element={<FinanceTeamDashboard/>} />
+        {/* finance route  */}
+        <Route path="/finance-team" element={<FinanceTeamLayout />}>
+          <Route index element={<FinanceTeamDashboard />} />
           <Route path="invoices" element={<FinanceTeamManageInvoice />} />
           <Route path="invoices/:id" element={<FinanceTeamInvoiceDetails />} />
           <Route path="payments" element={<FinanceTeamPayment />} />
           <Route path="transactions" element={<FinanceTeamTransactions />} />
           <Route path="refunds" element={<FinanceTeamRefunds />} />
-          <Route path="reconciliation" element={<FinanceTeamReconciliation />} />
+          <Route
+            path="reconciliation"
+            element={<FinanceTeamReconciliation />}
+          />
           <Route path="reports" element={<FinancialReports />} />
         </Route>
 
-        
         {/* Admin or organization  route */}
         <Route path="/organization-admin" element={<OrganizationAdminLayout />}>
           <Route index element={<AdminDashboard />} />
           {/* Additional admin routes can be added here */}
+          <Route
+            path="apostille-officers"
+            element={<SuperAdminManageApostilleOfficer />}
+          />
+        
+          <Route
+            path="apostille-officers/:id"
+            element={<SuperAdminManageApostilleOfficerDetails />}
+          />
+          <Route path="apostille-officers/:id/service-region-price" element={<SuperAdminManageApostilleOfficerServicePrice />} />
 
           <Route path="staff" element={<OrgTeam />} />
           {/* ---------Service Related Route-------- */}
+          <Route path="services" element={<OrgService />} />
+          <Route path="services/categories" element={<OrgServiceCategory />} />
+          <Route
+            path="services/req-documents"
+            element={<ManageDocumentRequired />}
+          />
+          <Route
+            path="services/processing-options"
+            element={<OrgProcessingOption />}
+          />
+          <Route
+            path="services/delivery-methods"
+            element={<OrgDeliveryMethods />}
+          />
+          <Route
+            path="services/delivery-methods/pricing"
+            element={<OrgDeliveryMethodsPrice />}
+          />
+          <Route path="country" element={<ManageCountryRegion />} />
+
+          {/* ---------Setting Related---------- */}
+          <Route path="smtp" element={<OrgSMTPSettings />} />
+          <Route path="site-settings" element={<SiteSettings />} />
+          <Route path="profile" element={<AdminProfile />} />
+        </Route>
+
+        {/* Super admin route */}
+        <Route path="/super-admin" element={<SuperAdminLayout />}>
+          <Route index element={<h1>Super admin dashobard </h1>} />
+
+          <Route
+            path="apostille-officers"
+            element={<SuperAdminManageApostilleOfficer />}
+          />
+          <Route
+            path="apostille-officers/:id"
+            element={<SuperAdminManageApostilleOfficerDetails />}
+          />
+          <Route path="apostille-officers/:id/service-region-price" element={<SuperAdminManageApostilleOfficerServicePrice />} />
+
+          <Route path="staff" element={<OrgTeam />} />
+          <Route path="blogs" element={<SuperAdminBlog />} />
+          <Route path="faqs" element={<SuperAdminFaq />} />
+          <Route path="country" element={<ManageCountryRegion />} />
           <Route path="services" element={<OrgService />} />
           <Route path="services/categories" element={<OrgServiceCategory />} />
           <Route
@@ -140,21 +198,12 @@ const App = () => {
             element={<OrgDeliveryMethods />}
           />
           <Route
-            path="country"
-            element={<ManageCountryRegion />}
+            path="services/delivery-methods/pricing"
+            element={<OrgDeliveryMethodsPrice />}
           />
 
-          {/* ---------Setting Related---------- */}
           <Route path="smtp" element={<OrgSMTPSettings />} />
           <Route path="site-settings" element={<SiteSettings />} />
-          <Route path="profile" element={<AdminProfile />} />
-        </Route>
-
-        {/* Super admin route */}
-        <Route path="/super-admin" element={<SuperAdminLayout />}>
-          <Route index element={<h1>Super admin dashobard </h1>} />
-          <Route path="blogs" element={<SuperAdminBlog />} />
-          <Route path="faqs" element={<SuperAdminFaq />} />
         </Route>
       </Routes>
     </Router>

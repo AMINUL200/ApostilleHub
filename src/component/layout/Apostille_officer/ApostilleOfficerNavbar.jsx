@@ -14,6 +14,7 @@ import {
   AlertCircle,
   HelpCircle,
 } from 'lucide-react';
+import { useAuthStore } from '../../../store/authStore';
 
 const ApostilleOfficerNavbar = ({ setSidebarOpen, sidebarOpen }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -22,16 +23,30 @@ const ApostilleOfficerNavbar = ({ setSidebarOpen, sidebarOpen }) => {
   const notificationRef = useRef(null);
   const navigate = useNavigate();
 
-  // Apostille Officer user data
+  // Get user data from auth store
+  const { user, logout } = useAuthStore();
+
+  // Apostille Officer user data - dynamic from store with fallback
   const userData = {
-    name: "Michael Chen",
-    email: "m.chen@apostillehub.com",
-    role: "Apostille Officer",
-    badge: "OFC-1042",
-    avatar: null,
+    name: user?.name || "Michael Chen",
+    email: user?.email || "m.chen@apostillehub.com",
+    role: user?.roles?.[0]?.name || "Apostille Officer",
+    badge: user?.badge_number || user?.employee_id || "OFC-1042",
+    avatar: user?.profile_photo || null,
   };
 
-  // Notifications data — scoped to the officer's daily work queue
+  // Get user initials for avatar
+  const getUserInitials = (name) => {
+    if (!name) return 'AO';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Notifications data — can be fetched from API
   const notifications = [
     {
       id: 1,
@@ -89,7 +104,7 @@ const ApostilleOfficerNavbar = ({ setSidebarOpen, sidebarOpen }) => {
   }, []);
 
   const handleLogout = () => {
-    console.log("Logging out...");
+    logout();
     navigate("/login");
   };
 
@@ -117,9 +132,34 @@ const ApostilleOfficerNavbar = ({ setSidebarOpen, sidebarOpen }) => {
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Toggle sidebar"
             >
               <Menu className="w-5 h-5 text-gray-600" />
             </button>
+
+            {/* Dynamic User Info - Left side */}
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                style={{ background: 'linear-gradient(135deg, #6D28D9, #8B5CF6)' }}
+              >
+                {userData.avatar ? (
+                  <img
+                    src={userData.avatar}
+                    alt={userData.name}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  getUserInitials(userData.name)
+                )}
+              </div>
+              <div className="hidden sm:block">
+                <p className="text-sm font-semibold text-gray-900">
+                  {userData.name}
+                </p>
+                <p className="text-xs text-gray-500">{userData.role}</p>
+              </div>
+            </div>
           </div>
 
           {/* Right side */}
@@ -129,6 +169,7 @@ const ApostilleOfficerNavbar = ({ setSidebarOpen, sidebarOpen }) => {
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative text-gray-600"
+                aria-label="Notifications"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -210,17 +251,18 @@ const ApostilleOfficerNavbar = ({ setSidebarOpen, sidebarOpen }) => {
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+                aria-label="Profile menu"
               >
                 <div className="w-9 h-9 bg-gradient-to-br from-[#6D28D9] to-[#8B5CF6] rounded-full flex items-center justify-center shadow-md">
                   {userData.avatar ? (
                     <img
                       src={userData.avatar}
-                      alt="Profile"
+                      alt={userData.name}
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
                     <span className="text-white text-sm font-bold">
-                      {userData.name.split(' ').map(n => n[0]).join('')}
+                      {getUserInitials(userData.name)}
                     </span>
                   )}
                 </div>
@@ -247,12 +289,12 @@ const ApostilleOfficerNavbar = ({ setSidebarOpen, sidebarOpen }) => {
                         {userData.avatar ? (
                           <img
                             src={userData.avatar}
-                            alt="Profile"
+                            alt={userData.name}
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
                           <span className="text-white text-lg font-bold">
-                            {userData.name.split(' ').map(n => n[0]).join('')}
+                            {getUserInitials(userData.name)}
                           </span>
                         )}
                       </div>
@@ -269,7 +311,7 @@ const ApostilleOfficerNavbar = ({ setSidebarOpen, sidebarOpen }) => {
                     </div>
                   </div>
 
-                  {/* Menu Items — mirrors the sidebar's PROFILE section */}
+                  {/* Menu Items */}
                   <div className="py-2">
                     <button
                       onClick={handleProfileClick}

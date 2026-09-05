@@ -1,43 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Package,
-  Truck,
+  DollarSign,
   Plus,
   Edit,
   Trash2,
   X,
   Check,
   Search,
-  Filter,
-  ChevronDown,
-  MoreHorizontal,
   RefreshCw,
   AlertCircle,
   CheckCircle2,
-  Clock,
-  Globe,
   MapPin,
-  TrendingUp,
-  Users,
-  Award,
-  Shield,
-  Eye,
-  EyeOff,
-  ExternalLink,
-  Copy,
-  Download,
-  Printer,
-  Mail,
-  Phone,
-  Building2,
-  Tag,
-  Hash,
-  FileText,
+  Truck,
   Calendar,
-  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  Clock,
 } from 'lucide-react';
 import { api } from '../../../services/app';
 import { useAuthStore } from '../../../store/authStore';
@@ -74,26 +53,54 @@ const ButtonOutline = ({ children, onClick, type = 'button', disabled = false, c
   </button>
 );
 
-const OrgDeliveryMethods = () => {
+// Currency list — each entry carries its country flag + display name so the
+// dropdown reads as "flag  CODE — Country" instead of a bare currency code.
+const currencies = [
+  { code: 'AUD', name: 'Australia', flag: '🇦🇺' },
+  { code: 'USD', name: 'United States', flag: '🇺🇸' },
+  { code: 'EUR', name: 'European Union', flag: '🇪🇺' },
+  { code: 'GBP', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'CAD', name: 'Canada', flag: '🇨🇦' },
+  { code: 'NZD', name: 'New Zealand', flag: '🇳🇿' },
+  { code: 'JPY', name: 'Japan', flag: '🇯🇵' },
+  { code: 'CNY', name: 'China', flag: '🇨🇳' },
+  { code: 'INR', name: 'India', flag: '🇮🇳' },
+  { code: 'SGD', name: 'Singapore', flag: '🇸🇬' },
+  { code: 'MYR', name: 'Malaysia', flag: '🇲🇾' },
+  { code: 'PHP', name: 'Philippines', flag: '🇵🇭' },
+  { code: 'IDR', name: 'Indonesia', flag: '🇮🇩' },
+  { code: 'THB', name: 'Thailand', flag: '🇹🇭' },
+  { code: 'VND', name: 'Vietnam', flag: '🇻🇳' },
+  // ASEAN currencies that were missing from the original list
+  { code: 'BND', name: 'Brunei', flag: '🇧🇳' },
+  { code: 'KHR', name: 'Cambodia', flag: '🇰🇭' },
+  { code: 'LAK', name: 'Laos', flag: '🇱🇦' },
+  { code: 'MMK', name: 'Myanmar', flag: '🇲🇲' },
+];
+
+const OrgDeliveryMethodsPrice = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [rates, setRates] = useState([]);
   const [deliveryMethods, setDeliveryMethods] = useState([]);
+  const [countries, setCountries] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [editingMethod, setEditingMethod] = useState(null);
-  const [selectedMethod, setSelectedMethod] = useState(null);
+  const [editingRate, setEditingRate] = useState(null);
+  const [selectedRate, setSelectedRate] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [typeFilter, setTypeFilter] = useState('All');
+  const [methodFilter, setMethodFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    type: 'postal',
+    delivery_method_id: '',
+    country_id: '',
+    price: '',
+    currency: 'AUD',
+    estimated_days: '',
     status: 'active',
   });
   const [formErrors, setFormErrors] = useState({});
@@ -101,28 +108,53 @@ const OrgDeliveryMethods = () => {
 
   const { user } = useAuthStore();
 
-  // Fetch delivery methods on mount
+  // Fetch data on mount
   useEffect(() => {
+    fetchRates();
     fetchDeliveryMethods();
+    fetchCountries();
   }, []);
 
-  const fetchDeliveryMethods = async () => {
+  const fetchRates = async () => {
     setIsLoading(true);
     setErrorMessage('');
     try {
+      const response = await api.get('/admin/delivery-method-rates');
+      if (response.data.success) {
+        const ratesData = response.data.data.data || response.data.data || [];
+        setRates(ratesData);
+      } else {
+        setRates([]);
+      }
+    } catch (error) {
+      console.error('Error fetching rates:', error);
+      setErrorMessage(error.response?.data?.message || error.message || 'Failed to load rates');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchDeliveryMethods = async () => {
+    try {
       const response = await api.get('/admin/delivery-methods');
       if (response.data.success) {
-        // Handle paginated response - extract data array
         const methodsData = response.data.data.data || response.data.data || [];
         setDeliveryMethods(methodsData);
-      } else {
-        setDeliveryMethods([]);
       }
     } catch (error) {
       console.error('Error fetching delivery methods:', error);
-      setErrorMessage(error.message || 'Failed to load delivery methods');
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const fetchCountries = async () => {
+    try {
+      const response = await api.get('/admin/countries');
+      if (response.data.success) {
+        const countriesData = response.data.data.data || response.data.data || [];
+        setCountries(countriesData);
+      }
+    } catch (error) {
+      console.error('Error fetching countries:', error);
     }
   };
 
@@ -142,9 +174,15 @@ const OrgDeliveryMethods = () => {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.name) errors.name = 'Name is required';
-    if (!formData.slug) errors.slug = 'Slug is required';
-    if (!formData.type) errors.type = 'Type is required';
+    if (!formData.delivery_method_id) errors.delivery_method_id = 'Delivery method is required';
+    if (!formData.country_id) errors.country_id = 'Country is required';
+    if (!formData.price) errors.price = 'Price is required';
+    if (formData.price && isNaN(formData.price)) errors.price = 'Price must be a valid number';
+    if (formData.price && parseFloat(formData.price) < 0) errors.price = 'Price cannot be negative';
+    if (!formData.estimated_days) errors.estimated_days = 'Estimated days is required';
+    if (formData.estimated_days && isNaN(formData.estimated_days)) errors.estimated_days = 'Must be a valid number';
+    if (formData.estimated_days && parseInt(formData.estimated_days) < 0) errors.estimated_days = 'Days cannot be negative';
+    if (!formData.currency) errors.currency = 'Currency is required';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -159,83 +197,108 @@ const OrgDeliveryMethods = () => {
 
     try {
       const payload = {
-        name: formData.name,
-        slug: formData.slug,
-        description: formData.description || null,
-        type: formData.type,
+        delivery_method_id: parseInt(formData.delivery_method_id),
+        country_id: parseInt(formData.country_id),
+        price: parseFloat(formData.price),
+        currency: formData.currency,
+        estimated_days: parseInt(formData.estimated_days),
         status: formData.status,
       };
 
       let response;
-      if (editingMethod) {
-        // Update - use PUT
-        response = await api.put(`/admin/delivery-methods/${editingMethod.id}`, payload);
+      if (editingRate) {
+        response = await api.put(`/admin/delivery-method-rates/${editingRate.id}`, payload);
       } else {
-        // Create - use POST
-        response = await api.post('/admin/delivery-methods', payload);
+        response = await api.post('/admin/delivery-method-rates', payload);
       }
 
       if (response.data.success || response.data) {
         setSuccessMessage(
-          editingMethod 
-            ? 'Delivery method updated successfully!' 
-            : 'Delivery method created successfully!'
+          editingRate 
+            ? 'Rate updated successfully!' 
+            : 'Rate created successfully!'
         );
-        await fetchDeliveryMethods();
+        await fetchRates();
         resetForm();
         setShowModal(false);
       }
     } catch (error) {
-      console.error('Error saving delivery method:', error);
-      setErrorMessage(error.response?.data?.message || error.message || 'Failed to save delivery method');
+      console.error('Error saving rate:', error);
+      setErrorMessage(error.response?.data?.message || error.message || 'Failed to save rate');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!selectedMethod) return;
+    if (!selectedRate) return;
 
     setIsDeleting(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
-      const response = await api.delete(`/admin/delivery-methods/${selectedMethod.id}`);
+      const response = await api.delete(`/admin/delivery-method-rates/${selectedRate.id}`);
       
       if (response.data.success || response.status === 200) {
-        setSuccessMessage('Delivery method deleted successfully!');
-        await fetchDeliveryMethods();
+        setSuccessMessage('Rate deleted successfully!');
+        await fetchRates();
         setShowDeleteModal(false);
-        setSelectedMethod(null);
+        setSelectedRate(null);
       }
     } catch (error) {
-      console.error('Error deleting delivery method:', error);
-      setErrorMessage(error.response?.data?.message || error.message || 'Failed to delete delivery method');
+      console.error('Error deleting rate:', error);
+      setErrorMessage(error.response?.data?.message || error.message || 'Failed to delete rate');
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const handleEdit = (method) => {
-    setEditingMethod(method);
+  const handleStatusToggle = async (rate) => {
+    const newStatus = rate.status === 'active' ? 'inactive' : 'active';
+    try {
+      const payload = {
+        delivery_method_id: parseInt(rate.delivery_method_id),
+        country_id: parseInt(rate.country_id),
+        price: parseFloat(rate.price),
+        currency: rate.currency,
+        estimated_days: parseInt(rate.estimated_days),
+        status: newStatus,
+      };
+      
+      const response = await api.put(`/admin/delivery-method-rates/${rate.id}`, payload);
+      
+      if (response.data.success || response.data) {
+        setSuccessMessage(`Rate ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
+        await fetchRates();
+      }
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      setErrorMessage(error.response?.data?.message || error.message || 'Failed to update status');
+    }
+  };
+
+  const handleEdit = (rate) => {
+    setEditingRate(rate);
     setFormData({
-      name: method.name || '',
-      slug: method.slug || '',
-      description: method.description || '',
-      type: method.type || 'postal',
-      status: method.status || 'active',
+      delivery_method_id: rate.delivery_method_id || '',
+      country_id: rate.country_id || '',
+      price: rate.price || '',
+      currency: rate.currency || 'AUD',
+      estimated_days: rate.estimated_days || '',
+      status: rate.status || 'active',
     });
     setShowModal(true);
   };
 
   const handleAdd = () => {
-    setEditingMethod(null);
+    setEditingRate(null);
     setFormData({
-      name: '',
-      slug: '',
-      description: '',
-      type: 'postal',
+      delivery_method_id: '',
+      country_id: '',
+      price: '',
+      currency: 'AUD',
+      estimated_days: '',
       status: 'active',
     });
     setShowModal(true);
@@ -243,56 +306,35 @@ const OrgDeliveryMethods = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      slug: '',
-      description: '',
-      type: 'postal',
+      delivery_method_id: '',
+      country_id: '',
+      price: '',
+      currency: 'AUD',
+      estimated_days: '',
       status: 'active',
     });
-    setEditingMethod(null);
+    setEditingRate(null);
     setFormErrors({});
   };
 
-  const handleDeleteClick = (method) => {
-    setSelectedMethod(method);
+  const handleDeleteClick = (rate) => {
+    setSelectedRate(rate);
     setShowDeleteModal(true);
   };
 
-  // Auto-generate slug from name
-  const generateSlug = (name) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
-
-  const handleNameChange = (e) => {
-    const name = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      name: name,
-      slug: generateSlug(name),
-    }));
-    if (formErrors.name) {
-      setFormErrors((prev) => ({
-        ...prev,
-        name: '',
-      }));
-    }
-  };
-
   // Filter and pagination
-  const filteredMethods = deliveryMethods.filter((method) => {
-    const matchesSearch = (method.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (method.slug || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (method.description || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || (method.status || '').toLowerCase() === statusFilter.toLowerCase();
-    const matchesType = typeFilter === 'All' || (method.type || '').toLowerCase() === typeFilter.toLowerCase();
-    return matchesSearch && matchesStatus && matchesType;
+  const filteredRates = rates.filter((rate) => {
+    const matchesSearch = 
+      (rate.delivery_method?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (rate.country?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (rate.currency || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || (rate.status || '').toLowerCase() === statusFilter.toLowerCase();
+    const matchesMethod = methodFilter === 'All' || (rate.delivery_method_id || '').toString() === methodFilter;
+    return matchesSearch && matchesStatus && matchesMethod;
   });
 
-  const totalPages = Math.ceil(filteredMethods.length / itemsPerPage);
-  const paginatedMethods = filteredMethods.slice(
+  const totalPages = Math.ceil(filteredRates.length / itemsPerPage);
+  const paginatedRates = filteredRates.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -317,7 +359,7 @@ const OrgDeliveryMethods = () => {
     );
   };
 
-  const getTypeBadge = (type) => {
+  const getMethodTypeBadge = (type) => {
     const config = {
       digital: { label: 'Digital', color: '#8B5CF6', bg: 'rgba(139, 92, 246, 0.1)' },
       courier: { label: 'Courier', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.1)' },
@@ -337,18 +379,10 @@ const OrgDeliveryMethods = () => {
     );
   };
 
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'digital':
-        return <Globe className="w-4 h-4" />;
-      case 'courier':
-        return <Truck className="w-4 h-4" />;
-      case 'postal':
-        return <Package className="w-4 h-4" />;
-      default:
-        return <Package className="w-4 h-4" />;
-    }
-  };
+  // Look up the flag for whatever currency code a rate is stored in — used
+  // both in the modal's live icon and in the table's price cell.
+  const getCurrencyMeta = (code) =>
+    currencies.find((c) => c.code === code) || { code, name: '', flag: '💱' };
 
   const container = {
     hidden: { opacity: 0 },
@@ -363,6 +397,8 @@ const OrgDeliveryMethods = () => {
     show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
   };
 
+  const selectedCurrencyMeta = getCurrencyMeta(formData.currency);
+
   return (
     <div className="min-h-screen" style={{ background: '#F8FAFC' }}>
       <div className="max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-12">
@@ -375,23 +411,23 @@ const OrgDeliveryMethods = () => {
         >
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl" style={{ background: 'rgba(11, 18, 32, 0.1)' }}>
-              <Truck className="w-6 h-6" style={{ color: '#0B1220' }} />
+              <DollarSign className="w-6 h-6" style={{ color: '#0B1220' }} />
             </div>
             <div>
               <h1
                 className="text-2xl lg:text-3xl font-bold"
                 style={{ fontFamily: "'Fraunces', serif", color: '#0B1220' }}
               >
-                Delivery Methods
+                Delivery Rates
               </h1>
               <p className="text-sm" style={{ color: '#64748B' }}>
-                Manage your organization's delivery options
+                Manage delivery method pricing by country
               </p>
             </div>
           </div>
           <ButtonPrimary onClick={handleAdd}>
             <Plus className="w-4 h-4" />
-            <span>Add Delivery Method</span>
+            <span>Add Rate</span>
           </ButtonPrimary>
         </motion.div>
 
@@ -453,7 +489,7 @@ const OrgDeliveryMethods = () => {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
               <input
                 type="text"
-                placeholder="Search by name, slug, or description..."
+                placeholder="Search by delivery method, country, or currency..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all"
@@ -462,15 +498,17 @@ const OrgDeliveryMethods = () => {
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
+                value={methodFilter}
+                onChange={(e) => setMethodFilter(e.target.value)}
                 className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all text-sm"
                 style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
               >
-                <option value="All">All Types</option>
-                <option value="digital">Digital</option>
-                <option value="courier">Courier</option>
-                <option value="postal">Postal</option>
+                <option value="All">All Methods</option>
+                {deliveryMethods.map((method) => (
+                  <option key={method.id} value={method.id.toString()}>
+                    {method.name}
+                  </option>
+                ))}
               </select>
               <select
                 value={statusFilter}
@@ -479,14 +517,14 @@ const OrgDeliveryMethods = () => {
                 style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
               >
                 <option value="All">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setStatusFilter('All');
-                  setTypeFilter('All');
+                  setMethodFilter('All');
                 }}
                 className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-gray-100"
                 style={{ color: '#64748B', border: '1px solid #E2E8F0' }}
@@ -497,7 +535,7 @@ const OrgDeliveryMethods = () => {
           </div>
         </motion.div>
 
-        {/* Delivery Methods Table */}
+        {/* Rates Table */}
         <motion.div
           variants={container}
           initial="hidden"
@@ -505,12 +543,11 @@ const OrgDeliveryMethods = () => {
           className="bg-white rounded-2xl overflow-hidden"
           style={{ border: '1px solid #E2E8F0' }}
         >
-          {/* Loading State */}
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div className="w-12 h-12 border-4 border-[#0B1220] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-sm" style={{ color: '#64748B' }}>Loading delivery methods...</p>
+                <p className="text-sm" style={{ color: '#64748B' }}>Loading rates...</p>
               </div>
             </div>
           ) : (
@@ -520,16 +557,16 @@ const OrgDeliveryMethods = () => {
                   <thead>
                     <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                       <th className="text-left text-xs font-medium py-3.5 px-4" style={{ color: '#64748B' }}>
-                        Name
+                        Delivery Method
                       </th>
                       <th className="text-left text-xs font-medium py-3.5 px-4" style={{ color: '#64748B' }}>
-                        Slug
+                        Country
                       </th>
                       <th className="text-left text-xs font-medium py-3.5 px-4" style={{ color: '#64748B' }}>
-                        Type
+                        Price
                       </th>
                       <th className="text-left text-xs font-medium py-3.5 px-4" style={{ color: '#64748B' }}>
-                        Description
+                        Est. Days
                       </th>
                       <th className="text-left text-xs font-medium py-3.5 px-4" style={{ color: '#64748B' }}>
                         Status
@@ -541,72 +578,105 @@ const OrgDeliveryMethods = () => {
                   </thead>
                   <tbody>
                     <AnimatePresence>
-                      {paginatedMethods.length > 0 ? (
-                        paginatedMethods.map((method, index) => (
-                          <motion.tr
-                            key={method.id}
-                            variants={fadeUp}
-                            className="hover:bg-gray-50 transition-colors"
-                            style={{ borderBottom: index < paginatedMethods.length - 1 ? '1px solid #F1F5F9' : 'none' }}
-                          >
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(11, 18, 32, 0.08)' }}>
-                                  {getTypeIcon(method.type)}
+                      {paginatedRates.length > 0 ? (
+                        paginatedRates.map((rate, index) => {
+                          const currencyMeta = getCurrencyMeta(rate.currency);
+                          return (
+                            <motion.tr
+                              key={rate.id}
+                              variants={fadeUp}
+                              className="hover:bg-gray-50 transition-colors"
+                              style={{ borderBottom: index < paginatedRates.length - 1 ? '1px solid #F1F5F9' : 'none' }}
+                            >
+                              <td className="py-3.5 px-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(11, 18, 32, 0.08)' }}>
+                                    <Truck className="w-5 h-5" style={{ color: '#0B1220' }} />
+                                  </div>
+                                  <div>
+                                    <span className="text-sm font-medium" style={{ color: '#0B1220' }}>
+                                      {rate.delivery_method?.name || 'N/A'}
+                                    </span>
+                                    <div className="mt-0.5">
+                                      {getMethodTypeBadge(rate.delivery_method?.type)}
+                                    </div>
+                                  </div>
                                 </div>
-                                <span className="text-sm font-medium" style={{ color: '#0B1220' }}>
-                                  {method.name}
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium" style={{ color: '#0B1220' }}>
+                                    {rate.country?.name || 'N/A'}
+                                  </span>
+                                  <span className="text-xs text-muted" style={{ color: '#94A3B8' }}>
+                                    ({rate.country?.iso2 || ''})
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className="text-sm font-semibold flex items-center gap-1.5" style={{ color: '#0B1220' }}>
+                                  <span>{currencyMeta.flag}</span>
+                                  <span>{rate.currency} {parseFloat(rate.price).toFixed(2)}</span>
                                 </span>
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="text-sm font-mono" style={{ color: '#64748B' }}>
-                                {method.slug}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              {getTypeBadge(method.type)}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="text-sm" style={{ color: '#64748B' }}>
-                                {method.description || '-'}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              {getStatusBadge(method.status)}
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={() => handleEdit(method)}
-                                  className="p-1.5 rounded-lg transition-colors hover:bg-gray-100"
-                                  style={{ color: '#64748B' }}
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteClick(method)}
-                                  className="p-1.5 rounded-lg transition-colors hover:bg-red-50 hover:text-red-500"
-                                  style={{ color: '#64748B' }}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </motion.tr>
-                        ))
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <div className="flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5" style={{ color: '#64748B' }} />
+                                  <span className="text-sm" style={{ color: '#64748B' }}>
+                                    {rate.estimated_days} days
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                {getStatusBadge(rate.status)}
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => handleStatusToggle(rate)}
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all hover:scale-105 ${
+                                      rate.status === 'active' 
+                                        ? 'hover:bg-red-50 hover:text-red-500' 
+                                        : 'hover:bg-green-50 hover:text-green-500'
+                                    }`}
+                                    style={{ 
+                                      color: rate.status === 'active' ? '#EF4444' : '#10B981',
+                                      background: rate.status === 'active' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)',
+                                    }}
+                                  >
+                                    {rate.status === 'active' ? 'Deactivate' : 'Activate'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleEdit(rate)}
+                                    className="p-1.5 rounded-lg transition-colors hover:bg-gray-100"
+                                    style={{ color: '#64748B' }}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteClick(rate)}
+                                    className="p-1.5 rounded-lg transition-colors hover:bg-red-50 hover:text-red-500"
+                                    style={{ color: '#64748B' }}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </motion.tr>
+                          );
+                        })
                       ) : (
                         <tr>
                           <td colSpan="6">
                             <div className="text-center py-12">
-                              <Truck className="w-16 h-16 mx-auto mb-4" style={{ color: '#94A3B8' }} />
+                              <DollarSign className="w-16 h-16 mx-auto mb-4" style={{ color: '#94A3B8' }} />
                               <h3 className="text-lg font-semibold mb-1" style={{ color: '#0B1220' }}>
-                                No delivery methods found
+                                No rates found
                               </h3>
                               <p className="text-sm" style={{ color: '#64748B' }}>
-                                {searchTerm || statusFilter !== 'All' || typeFilter !== 'All'
+                                {searchTerm || statusFilter !== 'All' || methodFilter !== 'All'
                                   ? 'Try adjusting your filters'
-                                  : 'Click "Add Delivery Method" to create one'}
+                                  : 'Click "Add Rate" to create one'}
                               </p>
                             </div>
                           </td>
@@ -622,8 +692,8 @@ const OrgDeliveryMethods = () => {
                 <div className="flex items-center justify-between px-4 py-3 border-t" style={{ borderColor: '#E2E8F0' }}>
                   <span className="text-sm" style={{ color: '#64748B' }}>
                     Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
-                    {Math.min(currentPage * itemsPerPage, filteredMethods.length)} of{' '}
-                    {filteredMethods.length} methods
+                    {Math.min(currentPage * itemsPerPage, filteredRates.length)} of{' '}
+                    {filteredRates.length} rates
                   </span>
                   <div className="flex items-center gap-1">
                     <button
@@ -693,7 +763,7 @@ const OrgDeliveryMethods = () => {
                     className="text-xl font-bold"
                     style={{ fontFamily: "'Fraunces', serif", color: '#0B1220' }}
                   >
-                    {editingMethod ? 'Edit Delivery Method' : 'Add Delivery Method'}
+                    {editingRate ? 'Edit Rate' : 'Add Rate'}
                   </h2>
                   <button
                     onClick={() => {
@@ -711,94 +781,143 @@ const OrgDeliveryMethods = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
-                        Name <span className="text-red-500">*</span>
+                        Delivery Method <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleNameChange}
-                          placeholder="e.g., UK Courier Delivery"
-                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all ${
-                            formErrors.name ? 'border-red-500' : 'border-[#E2E8F0]'
-                          }`}
-                          style={{ color: '#0B1220' }}
-                        />
-                      </div>
-                      {formErrors.name && (
-                        <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
-                        Slug <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <Hash className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
-                        <input
-                          type="text"
-                          name="slug"
-                          value={formData.slug}
-                          onChange={handleChange}
-                          placeholder="e.g., uk-courier-delivery"
-                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all ${
-                            formErrors.slug ? 'border-red-500' : 'border-[#E2E8F0]'
-                          }`}
-                          style={{ color: '#0B1220' }}
-                        />
-                      </div>
-                      {formErrors.slug && (
-                        <p className="mt-1 text-xs text-red-500">{formErrors.slug}</p>
-                      )}
-                      <p className="mt-1 text-xs" style={{ color: '#94A3B8' }}>
-                        Auto-generated from name, but you can customize it
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
-                        Type <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <Package className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
+                        <Truck className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
                         <select
-                          name="type"
-                          value={formData.type}
+                          name="delivery_method_id"
+                          value={formData.delivery_method_id}
                           onChange={handleChange}
                           className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all appearance-none ${
-                            formErrors.type ? 'border-red-500' : 'border-[#E2E8F0]'
+                            formErrors.delivery_method_id ? 'border-red-500' : 'border-[#E2E8F0]'
                           }`}
                           style={{ color: '#0B1220' }}
                         >
-                          <option value="digital">Digital</option>
-                          <option value="courier">Courier</option>
-                          <option value="postal">Postal</option>
+                          <option value="">Select delivery method</option>
+                          {deliveryMethods.map((method) => (
+                            <option key={method.id} value={method.id}>
+                              {method.name} ({method.type})
+                            </option>
+                          ))}
                         </select>
                       </div>
-                      {formErrors.type && (
-                        <p className="mt-1 text-xs text-red-500">{formErrors.type}</p>
+                      {formErrors.delivery_method_id && (
+                        <p className="mt-1 text-xs text-red-500">{formErrors.delivery_method_id}</p>
                       )}
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
-                        Description
+                        Country <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <FileText className="w-4 h-4 absolute left-3 top-3" style={{ color: '#94A3B8' }} />
-                        <textarea
-                          name="description"
-                          value={formData.description}
+                        <MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
+                        <select
+                          name="country_id"
+                          value={formData.country_id}
                           onChange={handleChange}
-                          placeholder="Describe the delivery method..."
-                          rows="3"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all resize-none"
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all appearance-none ${
+                            formErrors.country_id ? 'border-red-500' : 'border-[#E2E8F0]'
+                          }`}
+                          style={{ color: '#0B1220' }}
+                        >
+                          <option value="">Select country</option>
+                          {countries.map((country) => (
+                            <option key={country.id} value={country.id}>
+                              {country.name} ({country.iso2})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {formErrors.country_id && (
+                        <p className="mt-1 text-xs text-red-500">{formErrors.country_id}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
+                        Price <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
+                        <input
+                          type="number"
+                          name="price"
+                          value={formData.price}
+                          onChange={handleChange}
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all ${
+                            formErrors.price ? 'border-red-500' : 'border-[#E2E8F0]'
+                          }`}
                           style={{ color: '#0B1220' }}
                         />
                       </div>
+                      {formErrors.price && (
+                        <p className="mt-1 text-xs text-red-500">{formErrors.price}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
+                        Currency <span className="text-red-500">*</span>
+                      </label>
+                      {/* Currency select — icon shows the flag of whichever
+                          currency is currently chosen, and each option is
+                          rendered as "flag  CODE — Country" so the country
+                          behind each currency is visible at a glance. */}
+                      <div className="relative">
+                        <span
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-base leading-none pointer-events-none"
+                          aria-hidden="true"
+                        >
+                          {selectedCurrencyMeta.flag}
+                        </span>
+                        <select
+                          name="currency"
+                          value={formData.currency}
+                          onChange={handleChange}
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all appearance-none ${
+                            formErrors.currency ? 'border-red-500' : 'border-[#E2E8F0]'
+                          }`}
+                          style={{ color: '#0B1220' }}
+                        >
+                          {currencies.map((curr) => (
+                            <option key={curr.code} value={curr.code}>
+                              {curr.flag} {curr.code} — {curr.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {formErrors.currency && (
+                        <p className="mt-1 text-xs text-red-500">{formErrors.currency}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
+                        Estimated Days <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
+                        <input
+                          type="number"
+                          name="estimated_days"
+                          value={formData.estimated_days}
+                          onChange={handleChange}
+                          placeholder="e.g., 5"
+                          min="1"
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all ${
+                            formErrors.estimated_days ? 'border-red-500' : 'border-[#E2E8F0]'
+                          }`}
+                          style={{ color: '#0B1220' }}
+                        />
+                      </div>
+                      {formErrors.estimated_days && (
+                        <p className="mt-1 text-xs text-red-500">{formErrors.estimated_days}</p>
+                      )}
                     </div>
 
                     <div>
@@ -823,12 +942,12 @@ const OrgDeliveryMethods = () => {
                       {isSaving ? (
                         <>
                           <RefreshCw className="w-4 h-4 animate-spin" />
-                          <span>{editingMethod ? 'Updating...' : 'Creating...'}</span>
+                          <span>{editingRate ? 'Updating...' : 'Creating...'}</span>
                         </>
                       ) : (
                         <>
                           <Check className="w-4 h-4" />
-                          <span>{editingMethod ? 'Update' : 'Create'}</span>
+                          <span>{editingRate ? 'Update' : 'Create'}</span>
                         </>
                       )}
                     </ButtonPrimary>
@@ -851,7 +970,7 @@ const OrgDeliveryMethods = () => {
 
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
-        {showDeleteModal && selectedMethod && (
+        {showDeleteModal && selectedRate && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowDeleteModal(false)}
@@ -873,13 +992,20 @@ const OrgDeliveryMethods = () => {
                     className="text-xl font-bold"
                     style={{ fontFamily: "'Fraunces', serif", color: '#0B1220' }}
                   >
-                    Delete Delivery Method
+                    Delete Rate
                   </h2>
                 </div>
 
                 <p className="text-sm mb-6" style={{ color: '#64748B' }}>
-                  Are you sure you want to delete <span className="font-semibold" style={{ color: '#0B1220' }}>"{selectedMethod.name}"</span>? 
-                  This action cannot be undone.
+                  Are you sure you want to delete the rate for{' '}
+                  <span className="font-semibold" style={{ color: '#0B1220' }}>
+                    {selectedRate.delivery_method?.name || 'N/A'}
+                  </span>{' '}
+                  to{' '}
+                  <span className="font-semibold" style={{ color: '#0B1220' }}>
+                    {selectedRate.country?.name || 'N/A'}
+                  </span>
+                  ? This action cannot be undone.
                 </p>
 
                 <div className="flex gap-3">
@@ -922,4 +1048,4 @@ const OrgDeliveryMethods = () => {
   );
 };
 
-export default OrgDeliveryMethods;
+export default OrgDeliveryMethodsPrice;

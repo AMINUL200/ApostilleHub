@@ -17,6 +17,7 @@ import {
   Lock,
   LogOut,
   ShieldCheck,
+  TagIcon,
 } from 'lucide-react';
 
 // Logo Component
@@ -80,6 +81,7 @@ const sections = [
     items: [
       { id: 'my-profile', label: 'My Profile', icon: UserCircle, path: '/apostille-officer/profile' },
       { id: 'security', label: 'Security', icon: Lock, path: '/apostille-officer/security' },
+      { id: 'service-pricing', label: 'Service Pricing', icon: TagIcon, path: '/apostille-officer/service/region-price' },
     ],
   },
 ];

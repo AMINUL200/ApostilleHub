@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Package,
+  FileText,
   Plus,
   Edit,
   Trash2,
@@ -11,31 +11,28 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle2,
-  Tag,
-  Hash,
-  FileText,
   ChevronLeft,
   ChevronRight,
   SortAsc,
   SortDesc,
-  FolderTree,
   Eye,
   EyeOff,
   Copy,
   ExternalLink,
-  GripVertical,
-  Layers,
-  FolderOpen,
-  FileCheck,
+  Tag,
+  Hash,
+  Calendar,
+  Globe,
+  MapPin,
+  Briefcase,
   Shield,
   Clock,
   Users,
   Award,
   Building2,
-  Globe,
-  MapPin,
-  Calendar,
-  DollarSign,
+  FolderTree,
+  Layers,
+  FileCheck,
   ArrowUpDown,
 } from 'lucide-react';
 import { api } from '../../../services/app';
@@ -73,141 +70,211 @@ const ButtonOutline = ({ children, onClick, type = 'button', disabled = false, c
   </button>
 );
 
-const OrgService = () => {
+const ManageDocumentRequired = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [services, setServices] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+  const [requirements, setRequirements] = useState([]);
+  const [filteredRequirements, setFilteredRequirements] = useState([]);
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
-    per_page: 20,
+    per_page: 15,
     total: 0,
     from: 0,
     to: 0,
   });
+  const [services, setServices] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [regions, setRegions] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [editingService, setEditingService] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [sortField, setSortField] = useState('name');
-  const [sortDirection, setSortDirection] = useState('asc');
+  const [serviceFilter, setServiceFilter] = useState('All');
+  const [sortField, setSortField] = useState('created_at');
+  const [sortDirection, setSortDirection] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(20);
+  const [perPage, setPerPage] = useState(15);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [selectedCountryId, setSelectedCountryId] = useState('');
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
+    service_id: '',
+    country_id: '',
+    region_id: '',
+    document_type: '',
+    title: '',
     description: '',
-    requires_original_document: false,
-    max_documents: 1,
+    is_required: true,
+    sort_order: 1,
     status: 'active',
   });
   const [formErrors, setFormErrors] = useState({});
 
   const { user } = useAuthStore();
 
-  // Fetch services and categories on mount and when filters change
+  // Fetch data on mount
   useEffect(() => {
+    fetchRequirements();
     fetchServices();
-    fetchCategories();
-  }, [currentPage, perPage, sortField, sortDirection, searchTerm, statusFilter, categoryFilter]);
+    fetchCountries();
+  }, []);
 
-  const fetchServices = async () => {
+  // Apply filters
+  useEffect(() => {
+    applyFilters();
+  }, [requirements, searchTerm, statusFilter, serviceFilter, sortField, sortDirection]);
+
+  // Fetch regions when country changes in modal
+  useEffect(() => {
+    if (formData.country_id) {
+      fetchRegionsByCountry(formData.country_id);
+    } else {
+      setRegions([]);
+    }
+  }, [formData.country_id]);
+
+  const fetchRequirements = async () => {
     setIsLoading(true);
     setErrorMessage('');
     try {
       const params = new URLSearchParams({
         page: currentPage,
         per_page: perPage,
-        sort: sortField,
-        direction: sortDirection,
-        ...(searchTerm && { search: searchTerm }),
-        ...(statusFilter !== 'All' && { status: statusFilter.toLowerCase() }),
-        ...(categoryFilter !== 'All' && { category_id: categoryFilter }),
       });
 
-      const response = await api.get(`/admin/services?${params}`);
+      const response = await api.get(`/admin/service-document-requirements?${params}`);
       if (response.data.success) {
-        setServices(response.data.data.data || []);
+        const data = response.data.data;
+        setRequirements(data.data || []);
+        setFilteredRequirements(data.data || []);
         setPagination({
-          current_page: response.data.data.current_page || 1,
-          last_page: response.data.data.last_page || 1,
-          per_page: response.data.data.per_page || 20,
-          total: response.data.data.total || 0,
-          from: response.data.data.from || 0,
-          to: response.data.data.to || 0,
+          current_page: data.current_page || 1,
+          last_page: data.last_page || 1,
+          per_page: data.per_page || 15,
+          total: data.total || 0,
+          from: data.from || 0,
+          to: data.to || 0,
         });
       }
     } catch (error) {
-      console.error('Error fetching services:', error);
-      setErrorMessage(error.message || 'Failed to load services');
+      console.error('Error fetching requirements:', error);
+      setErrorMessage(error.message || 'Failed to load requirements');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchCategories = async () => {
+  const fetchServices = async () => {
     try {
-      const response = await api.get('/admin/service-categories?per_page=100');
+      const response = await api.get('/admin/services?per_page=100');
       if (response.data.success) {
-        setCategories(response.data.data.data || []);
+        setServices(response.data.data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error('Error fetching services:', error);
     }
+  };
+
+  const fetchCountries = async () => {
+    try {
+      const response = await api.get('/admin/countries?per_page=100');
+      if (response.data.success) {
+        setCountries(response.data.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching countries:', error);
+    }
+  };
+
+  const fetchRegionsByCountry = async (countryId) => {
+    try {
+      const response = await api.get(`/admin/regions?country_id=${countryId}&per_page=100`);
+      if (response.data.success) {
+        setRegions(response.data.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+    }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...requirements];
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(r =>
+        r.title?.toLowerCase().includes(term) ||
+        r.document_type?.toLowerCase().includes(term) ||
+        r.description?.toLowerCase().includes(term) ||
+        r.service?.name?.toLowerCase().includes(term) ||
+        r.country?.name?.toLowerCase().includes(term)
+      );
+    }
+
+    if (statusFilter !== 'All') {
+      filtered = filtered.filter(r => r.status === statusFilter.toLowerCase());
+    }
+
+    if (serviceFilter !== 'All') {
+      filtered = filtered.filter(r => String(r.service_id) === serviceFilter);
+    }
+
+    filtered.sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+      if (sortField === 'created_at') {
+        aVal = new Date(aVal);
+        bVal = new Date(bVal);
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+      }
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredRequirements(filtered);
+    setCurrentPage(1);
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const val = type === 'checkbox' ? checked : value;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: val,
-    }));
-    if (formErrors[name]) {
-      setFormErrors((prev) => ({
+    
+    // If country changes, reset region
+    if (name === 'country_id') {
+      setSelectedCountryId(val);
+      setFormData(prev => ({
         ...prev,
-        [name]: '',
+        country_id: val,
+        region_id: '',
       }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: val,
+      }));
+    }
+    
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.name) errors.name = 'Name is required';
-    if (!formData.slug) errors.slug = 'Slug is required';
+    if (!formData.service_id) errors.service_id = 'Service is required';
+    if (!formData.document_type) errors.document_type = 'Document type is required';
+    if (!formData.title) errors.title = 'Title is required';
     if (!formData.description) errors.description = 'Description is required';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
-  };
-
-  // Generate slug from name
-  const generateSlug = (name) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
-
-  const handleNameChange = (e) => {
-    const name = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      name,
-      slug: generateSlug(name),
-    }));
-    if (formErrors.name) {
-      setFormErrors((prev) => ({
-        ...prev,
-        name: '',
-      }));
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -220,84 +287,122 @@ const OrgService = () => {
 
     try {
       const payload = {
-        name: formData.name,
-        slug: formData.slug,
+        service_id: parseInt(formData.service_id),
+        country_id: formData.country_id ? parseInt(formData.country_id) : null,
+        region_id: formData.region_id ? parseInt(formData.region_id) : null,
+        document_type: formData.document_type,
+        title: formData.title,
         description: formData.description,
-        requires_original_document: formData.requires_original_document,
-        max_documents: parseInt(formData.max_documents) || 1,
+        is_required: formData.is_required,
+        sort_order: parseInt(formData.sort_order) || 1,
         status: formData.status,
       };
 
       let response;
-      if (editingService) {
-        response = await api.put(`/admin/services/${editingService.id}`, payload);
+      if (editingItem) {
+        response = await api.put(`/admin/service-document-requirements/${editingItem.id}`, payload);
       } else {
-        response = await api.post('/admin/services', payload);
+        response = await api.post('/admin/service-document-requirements', payload);
       }
 
       if (response.data.success) {
         setSuccessMessage(
-          editingService 
-            ? 'Service updated successfully!' 
-            : 'Service created successfully!'
+          editingItem
+            ? 'Document requirement updated successfully!'
+            : 'Document requirement created successfully!'
         );
-        await fetchServices();
+        await fetchRequirements();
         resetForm();
         setShowModal(false);
       }
     } catch (error) {
-      console.error('Error saving service:', error);
-      setErrorMessage(error.message || 'Failed to save service');
+      console.error('Error saving requirement:', error);
+      setErrorMessage(error.message || 'Failed to save requirement');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!selectedService) return;
+    if (!selectedItem) return;
 
     setIsDeleting(true);
     setErrorMessage('');
     setSuccessMessage('');
 
     try {
-      const response = await api.delete(`/admin/services/${selectedService.id}`);
+      const response = await api.delete(`/admin/service-document-requirements/${selectedItem.id}`);
       
       if (response.data.success || response.status === 200) {
-        setSuccessMessage('Service deleted successfully!');
-        await fetchServices();
+        setSuccessMessage('Document requirement deleted successfully!');
+        await fetchRequirements();
         setShowDeleteModal(false);
-        setSelectedService(null);
+        setSelectedItem(null);
       }
     } catch (error) {
-      console.error('Error deleting service:', error);
-      setErrorMessage(error.message || 'Failed to delete service');
+      console.error('Error deleting requirement:', error);
+      setErrorMessage(error.message || 'Failed to delete requirement');
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const handleEdit = (service) => {
-    setEditingService(service);
+  const handleStatusToggle = async (item) => {
+    setIsStatusUpdating(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    try {
+      const newStatus = item.status === 'active' ? 'inactive' : 'active';
+      const response = await api.patch(`/admin/service-document-requirements/${item.id}/status`, {
+        status: newStatus,
+      });
+
+      if (response.data.success) {
+        setSuccessMessage(`Status updated to ${newStatus}!`);
+        await fetchRequirements();
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      setErrorMessage(error.message || 'Failed to update status');
+    } finally {
+      setIsStatusUpdating(false);
+    }
+  };
+
+  const handleEdit = (item) => {
+    setEditingItem(item);
+    setSelectedCountryId(item.country_id || '');
     setFormData({
-      name: service.name || '',
-      slug: service.slug || '',
-      description: service.description || '',
-      requires_original_document: service.requires_original_document || false,
-      max_documents: service.max_documents || 1,
-      status: service.status || 'active',
+      service_id: String(item.service_id || ''),
+      country_id: item.country_id || '',
+      region_id: item.region_id || '',
+      document_type: item.document_type || '',
+      title: item.title || '',
+      description: item.description || '',
+      is_required: item.is_required === true || item.is_required === 1,
+      sort_order: parseInt(item.sort_order) || 1,
+      status: item.status || 'active',
     });
+    if (item.country_id) {
+      fetchRegionsByCountry(item.country_id);
+    }
     setShowModal(true);
   };
 
   const handleAdd = () => {
-    setEditingService(null);
+    setEditingItem(null);
+    setSelectedCountryId('');
+    setRegions([]);
     setFormData({
-      name: '',
-      slug: '',
+      service_id: '',
+      country_id: '',
+      region_id: '',
+      document_type: '',
+      title: '',
       description: '',
-      requires_original_document: false,
-      max_documents: 1,
+      is_required: true,
+      sort_order: 1,
       status: 'active',
     });
     setShowModal(true);
@@ -305,19 +410,24 @@ const OrgService = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      slug: '',
+      service_id: '',
+      country_id: '',
+      region_id: '',
+      document_type: '',
+      title: '',
       description: '',
-      requires_original_document: false,
-      max_documents: 1,
+      is_required: true,
+      sort_order: 1,
       status: 'active',
     });
-    setEditingService(null);
+    setSelectedCountryId('');
+    setRegions([]);
+    setEditingItem(null);
     setFormErrors({});
   };
 
-  const handleDeleteClick = (service) => {
-    setSelectedService(service);
+  const handleDeleteClick = (item) => {
+    setSelectedItem(item);
     setShowDeleteModal(true);
   };
 
@@ -355,9 +465,22 @@ const OrgService = () => {
     );
   };
 
-  const getCategoryName = (categoryId) => {
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.name : 'N/A';
+  const getRequiredBadge = (isRequired) => {
+    const config = isRequired
+      ? { label: 'Required', color: '#10B981', bg: 'rgba(16, 185, 129, 0.1)' }
+      : { label: 'Optional', color: '#94A3B8', bg: 'rgba(148, 163, 184, 0.1)' };
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+        style={{
+          background: config.bg,
+          color: config.color,
+        }}
+      >
+        <span className="w-1.5 h-1.5 rounded-full" style={{ background: config.color }} />
+        {config.label}
+      </span>
+    );
   };
 
   const container = {
@@ -375,7 +498,7 @@ const OrgService = () => {
 
   return (
     <div className="min-h-screen" style={{ background: '#F8FAFC' }}>
-      <div className="max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-12">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 lg:py-12">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -385,23 +508,20 @@ const OrgService = () => {
         >
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl" style={{ background: 'rgba(11, 18, 32, 0.1)' }}>
-              <Package className="w-6 h-6" style={{ color: '#0B1220' }} />
+              <FileText className="w-6 h-6" style={{ color: '#0B1220' }} />
             </div>
             <div>
-              <h1
-                className="text-2xl lg:text-3xl font-bold"
-                style={{ fontFamily: "'Fraunces', serif", color: '#0B1220' }}
-              >
-                Services
+              <h1 className="text-2xl lg:text-3xl font-bold text-[#0B1220]">
+                Document Requirements
               </h1>
-              <p className="text-sm" style={{ color: '#64748B' }}>
-                Manage your organization's services
+              <p className="text-sm text-[#64748B]">
+                Manage service document requirements
               </p>
             </div>
           </div>
           <ButtonPrimary onClick={handleAdd}>
             <Plus className="w-4 h-4" />
-            <span>Add Service</span>
+            <span>Add Requirement</span>
           </ButtonPrimary>
         </motion.div>
 
@@ -463,24 +583,24 @@ const OrgService = () => {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
               <input
                 type="text"
-                placeholder="Search by name, slug, or description..."
+                placeholder="Search by title, document type, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all"
                 style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
               />
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all text-sm"
+                value={serviceFilter}
+                onChange={(e) => setServiceFilter(e.target.value)}
+                className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all text-sm"
                 style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
               >
-                <option value="All">All Categories</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
+                <option value="All">All Services</option>
+                {services.map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.name}
                   </option>
                 ))}
               </select>
@@ -488,7 +608,7 @@ const OrgService = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all text-sm"
+                className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all text-sm"
                 style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
               >
                 <option value="All">All Status</option>
@@ -499,11 +619,12 @@ const OrgService = () => {
               <select
                 value={perPage}
                 onChange={handlePerPageChange}
-                className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all text-sm"
+                className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all text-sm"
                 style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
               >
                 <option value="10">10 per page</option>
-                <option value="20">20 per page</option>
+                <option value="15">15 per page</option>
+                <option value="25">25 per page</option>
                 <option value="50">50 per page</option>
                 <option value="100">100 per page</option>
               </select>
@@ -512,8 +633,8 @@ const OrgService = () => {
                 onClick={() => {
                   setSearchTerm('');
                   setStatusFilter('All');
-                  setCategoryFilter('All');
-                  setPerPage(20);
+                  setServiceFilter('All');
+                  setPerPage(15);
                   setCurrentPage(1);
                 }}
                 className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-gray-100"
@@ -525,7 +646,7 @@ const OrgService = () => {
           </div>
         </motion.div>
 
-        {/* Services Table */}
+        {/* Requirements Table */}
         <motion.div
           variants={container}
           initial="hidden"
@@ -533,49 +654,54 @@ const OrgService = () => {
           className="bg-white rounded-2xl overflow-hidden"
           style={{ border: '1px solid #E2E8F0' }}
         >
-          {/* Loading State */}
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div className="w-12 h-12 border-4 border-[#0B1220] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-sm" style={{ color: '#64748B' }}>Loading services...</p>
+                <p className="text-sm text-[#64748B]">Loading requirements...</p>
               </div>
             </div>
           ) : (
             <>
-              <div className="max-w-[400px] md:max-w-[700px] lg:max-w-[1140px] overflow-x-auto">
-              <table className="w-full min-w-[700px]">
+              <div className="overflow-x-auto">
+                <table className="w-full">
                   <thead>
                     <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                       <th
                         className="text-left text-xs font-medium py-3.5 px-4 cursor-pointer hover:text-[#0B1220] transition-colors"
-                        onClick={() => handleSort('name')}
+                        onClick={() => handleSort('title')}
                         style={{ color: '#64748B' }}
                       >
                         <div className="flex items-center gap-1">
-                          Name
-                          {sortField === 'name' && (
+                          Title
+                          {sortField === 'title' && (
                             sortDirection === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
                           )}
                         </div>
                       </th>
                       <th
                         className="text-left text-xs font-medium py-3.5 px-4 cursor-pointer hover:text-[#0B1220] transition-colors"
-                        onClick={() => handleSort('slug')}
+                        onClick={() => handleSort('document_type')}
                         style={{ color: '#64748B' }}
                       >
                         <div className="flex items-center gap-1">
-                          Slug
-                          {sortField === 'slug' && (
+                          Document Type
+                          {sortField === 'document_type' && (
                             sortDirection === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
                           )}
                         </div>
                       </th>
                       <th className="text-left text-xs font-medium py-3.5 px-4" style={{ color: '#64748B' }}>
-                        Category
+                        Service
                       </th>
                       <th className="text-left text-xs font-medium py-3.5 px-4" style={{ color: '#64748B' }}>
-                        Description
+                        Country
+                      </th>
+                      <th className="text-left text-xs font-medium py-3.5 px-4" style={{ color: '#64748B' }}>
+                        Region
+                      </th>
+                      <th className="text-left text-xs font-medium py-3.5 px-4" style={{ color: '#64748B' }}>
+                        Required
                       </th>
                       <th
                         className="text-left text-xs font-medium py-3.5 px-4 cursor-pointer hover:text-[#0B1220] transition-colors"
@@ -596,63 +722,74 @@ const OrgService = () => {
                   </thead>
                   <tbody>
                     <AnimatePresence>
-                      {services.length > 0 ? (
-                        services.map((service, index) => (
+                      {filteredRequirements.length > 0 ? (
+                        filteredRequirements.map((item, index) => (
                           <motion.tr
-                            key={service.id}
+                            key={item.id}
                             variants={fadeUp}
                             className="hover:bg-gray-50 transition-colors"
-                            style={{ borderBottom: index < services.length - 1 ? '1px solid #F1F5F9' : 'none' }}
+                            style={{ borderBottom: index < filteredRequirements.length - 1 ? '1px solid #F1F5F9' : 'none' }}
                           >
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(11, 18, 32, 0.08)' }}>
-                                  <Package className="w-5 h-5" style={{ color: '#0B1220' }} />
+                                  <FileCheck className="w-5 h-5" style={{ color: '#0B1220' }} />
                                 </div>
                                 <div>
-                                  <span className="text-sm font-medium" style={{ color: '#0B1220' }}>
-                                    {service.name}
-                                  </span>
-                                  {service.requires_original_document && (
-                                    <span className="block text-xs" style={{ color: '#D4AF37' }}>
-                                      <Shield className="w-3 h-3 inline mr-0.5" />
-                                      Original required
-                                    </span>
-                                  )}
+                                  <p className="text-sm font-medium text-[#0B1220]">
+                                    {item.title}
+                                  </p>
+                                  <p className="text-xs text-[#64748B]">
+                                    Sort: {item.sort_order}
+                                  </p>
                                 </div>
                               </div>
                             </td>
                             <td className="py-3.5 px-4">
-                              <span className="text-sm font-mono" style={{ color: '#64748B' }}>
-                                {service.slug}
+                              <span className="text-sm font-mono text-[#0F4C81]">
+                                {item.document_type}
                               </span>
                             </td>
                             <td className="py-3.5 px-4">
-                              <span className="text-sm" style={{ color: '#64748B' }}>
-                                {service.category?.name || getCategoryName(service.service_category_id)}
+                              <span className="text-sm text-[#64748B]">
+                                {item.service?.name || 'N/A'}
                               </span>
                             </td>
                             <td className="py-3.5 px-4">
-                              <span className="text-sm" style={{ color: '#64748B' }}>
-                                {service.description?.length > 50 
-                                  ? service.description.substring(0, 50) + '...' 
-                                  : service.description}
+                              <span className="text-sm text-[#64748B]">
+                                {item.country?.name || 'Global'}
                               </span>
                             </td>
                             <td className="py-3.5 px-4">
-                              {getStatusBadge(service.status)}
+                              <span className="text-sm text-[#64748B]">
+                                {item.region?.name || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              {getRequiredBadge(item.is_required)}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              {getStatusBadge(item.status)}
                             </td>
                             <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
+                              <div className="flex items-center justify-end gap-1">
                                 <button
-                                  onClick={() => handleEdit(service)}
+                                  onClick={() => handleStatusToggle(item)}
+                                  className="p-1.5 rounded-lg transition-colors hover:bg-gray-100"
+                                  style={{ color: item.status === 'active' ? '#EF4444' : '#10B981' }}
+                                  title={item.status === 'active' ? 'Deactivate' : 'Activate'}
+                                >
+                                  {item.status === 'active' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                                <button
+                                  onClick={() => handleEdit(item)}
                                   className="p-1.5 rounded-lg transition-colors hover:bg-gray-100"
                                   style={{ color: '#64748B' }}
                                 >
                                   <Edit className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteClick(service)}
+                                  onClick={() => handleDeleteClick(item)}
                                   className="p-1.5 rounded-lg transition-colors hover:bg-red-50 hover:text-red-500"
                                   style={{ color: '#64748B' }}
                                 >
@@ -664,16 +801,16 @@ const OrgService = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="6">
+                          <td colSpan="8">
                             <div className="text-center py-12">
-                              <Package className="w-16 h-16 mx-auto mb-4" style={{ color: '#94A3B8' }} />
-                              <h3 className="text-lg font-semibold mb-1" style={{ color: '#0B1220' }}>
-                                No services found
+                              <FileText className="w-16 h-16 mx-auto mb-4" style={{ color: '#94A3B8' }} />
+                              <h3 className="text-lg font-semibold mb-1 text-[#0B1220]">
+                                No requirements found
                               </h3>
-                              <p className="text-sm" style={{ color: '#64748B' }}>
-                                {searchTerm || statusFilter !== 'All' || categoryFilter !== 'All'
+                              <p className="text-sm text-[#64748B]">
+                                {searchTerm || statusFilter !== 'All' || serviceFilter !== 'All'
                                   ? 'Try adjusting your filters'
-                                  : 'Click "Add Service" to create one'}
+                                  : 'Click "Add Requirement" to create one'}
                               </p>
                             </div>
                           </td>
@@ -687,8 +824,8 @@ const OrgService = () => {
               {/* Pagination */}
               {pagination.total > 0 && (
                 <div className="flex items-center justify-between px-4 py-3 border-t flex-wrap gap-4" style={{ borderColor: '#E2E8F0' }}>
-                  <span className="text-sm" style={{ color: '#64748B' }}>
-                    Showing {pagination.from} to {pagination.to} of {pagination.total} services
+                  <span className="text-sm text-[#64748B]">
+                    Showing {pagination.from} to {pagination.to} of {pagination.total} requirements
                   </span>
                   <div className="flex items-center gap-1">
                     <button
@@ -766,11 +903,8 @@ const OrgService = () => {
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2
-                    className="text-xl font-bold"
-                    style={{ fontFamily: "'Fraunces', serif", color: '#0B1220' }}
-                  >
-                    {editingService ? 'Edit Service' : 'Add Service'}
+                  <h2 className="text-xl font-bold text-[#0B1220]">
+                    {editingItem ? 'Edit Document Requirement' : 'Add Document Requirement'}
                   </h2>
                   <button
                     onClick={() => {
@@ -787,64 +921,92 @@ const OrgService = () => {
                 <form onSubmit={handleSubmit}>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
-                        Name <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium mb-1.5 text-[#0B1220]">
+                        Service <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleNameChange}
-                          placeholder="e.g., Standard UK Apostille"
-                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all ${
-                            formErrors.name ? 'border-red-500' : 'border-[#E2E8F0]'
-                          }`}
-                          style={{ color: '#0B1220' }}
-                        />
-                      </div>
-                      {formErrors.name && (
-                        <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
-                        Slug <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <Hash className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
-                        <input
-                          type="text"
-                          name="slug"
-                          value={formData.slug}
+                        <Briefcase className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                        <select
+                          name="service_id"
+                          value={formData.service_id}
                           onChange={handleChange}
-                          placeholder="e.g., standard-uk-apostille"
-                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all ${
-                            formErrors.slug ? 'border-red-500' : 'border-[#E2E8F0]'
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all appearance-none ${
+                            formErrors.service_id ? 'border-red-500' : 'border-[#E2E8F0]'
                           }`}
                           style={{ color: '#0B1220' }}
-                        />
+                        >
+                          <option value="">Select Service</option>
+                          {services.map((service) => (
+                            <option key={service.id} value={service.id}>
+                              {service.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                      {formErrors.slug && (
-                        <p className="mt-1 text-xs text-red-500">{formErrors.slug}</p>
+                      {formErrors.service_id && (
+                        <p className="mt-1 text-xs text-red-500">{formErrors.service_id}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
+                      <label className="block text-sm font-medium mb-1.5 text-[#0B1220]">
+                        Document Type <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                        <input
+                          type="text"
+                          name="document_type"
+                          value={formData.document_type}
+                          onChange={handleChange}
+                          placeholder="e.g., passport, address_proof"
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all ${
+                            formErrors.document_type ? 'border-red-500' : 'border-[#E2E8F0]'
+                          }`}
+                          style={{ color: '#0B1220' }}
+                        />
+                      </div>
+                      {formErrors.document_type && (
+                        <p className="mt-1 text-xs text-red-500">{formErrors.document_type}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5 text-[#0B1220]">
+                        Title <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Hash className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                        <input
+                          type="text"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleChange}
+                          placeholder="e.g., Valid Passport"
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all ${
+                            formErrors.title ? 'border-red-500' : 'border-[#E2E8F0]'
+                          }`}
+                          style={{ color: '#0B1220' }}
+                        />
+                      </div>
+                      {formErrors.title && (
+                        <p className="mt-1 text-xs text-red-500">{formErrors.title}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5 text-[#0B1220]">
                         Description <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <FileText className="w-4 h-4 absolute left-3 top-3" style={{ color: '#94A3B8' }} />
+                        <FileText className="w-4 h-4 absolute left-3 top-3 text-[#94A3B8]" />
                         <textarea
                           name="description"
                           value={formData.description}
                           onChange={handleChange}
-                          placeholder="Describe the service..."
+                          placeholder="Describe the document requirement..."
                           rows="3"
-                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all resize-none ${
+                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all resize-none ${
                             formErrors.description ? 'border-red-500' : 'border-[#E2E8F0]'
                           }`}
                           style={{ color: '#0B1220' }}
@@ -857,29 +1019,79 @@ const OrgService = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
-                          Max Documents
+                        <label className="block text-sm font-medium mb-1.5 text-[#0B1220]">
+                          Country
+                        </label>
+                        <div className="relative">
+                          <Globe className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                          <select
+                            name="country_id"
+                            value={formData.country_id}
+                            onChange={handleChange}
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all appearance-none"
+                            style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
+                          >
+                            <option value="">Global (All Countries)</option>
+                            {countries.map((country) => (
+                              <option key={country.id} value={country.id}>
+                                {country.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1.5 text-[#0B1220]">
+                          Region
+                        </label>
+                        <div className="relative">
+                          <MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                          <select
+                            name="region_id"
+                            value={formData.region_id}
+                            onChange={handleChange}
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all appearance-none"
+                            style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
+                            disabled={!formData.country_id}
+                          >
+                            <option value="">
+                              {!formData.country_id ? 'Select Country First' : 'All Regions'}
+                            </option>
+                            {regions.map((region) => (
+                              <option key={region.id} value={region.id}>
+                                {region.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1.5 text-[#0B1220]">
+                          Sort Order
                         </label>
                         <input
                           type="number"
-                          name="max_documents"
-                          value={formData.max_documents}
+                          name="sort_order"
+                          value={formData.sort_order}
                           onChange={handleChange}
                           min="1"
-                          className="w-full px-4 py-2.5 rounded-xl border border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all"
-                          style={{ color: '#0B1220' }}
+                          className="w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all"
+                          style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1.5" style={{ color: '#0B1220' }}>
+                        <label className="block text-sm font-medium mb-1.5 text-[#0B1220]">
                           Status
                         </label>
                         <select
                           name="status"
                           value={formData.status}
                           onChange={handleChange}
-                          className="w-full px-4 py-2.5 rounded-xl border border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition-all appearance-none"
-                          style={{ color: '#0B1220' }}
+                          className="w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all appearance-none"
+                          style={{ borderColor: '#E2E8F0', color: '#0B1220' }}
                         >
                           <option value="active">Active</option>
                           <option value="inactive">Inactive</option>
@@ -890,13 +1102,13 @@ const OrgService = () => {
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
-                        name="requires_original_document"
-                        checked={formData.requires_original_document}
+                        name="is_required"
+                        checked={formData.is_required}
                         onChange={handleChange}
                         className="w-5 h-5 rounded border-gray-300 text-[#0B1220] focus:ring-[#0B1220]"
                       />
-                      <label className="text-sm" style={{ color: '#0B1220' }}>
-                        Requires original document
+                      <label className="text-sm text-[#0B1220]">
+                        This document is required
                       </label>
                     </div>
                   </div>
@@ -906,12 +1118,12 @@ const OrgService = () => {
                       {isSaving ? (
                         <>
                           <RefreshCw className="w-4 h-4 animate-spin" />
-                          <span>{editingService ? 'Updating...' : 'Creating...'}</span>
+                          <span>{editingItem ? 'Updating...' : 'Creating...'}</span>
                         </>
                       ) : (
                         <>
                           <Check className="w-4 h-4" />
-                          <span>{editingService ? 'Update' : 'Create'}</span>
+                          <span>{editingItem ? 'Update' : 'Create'}</span>
                         </>
                       )}
                     </ButtonPrimary>
@@ -934,7 +1146,7 @@ const OrgService = () => {
 
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
-        {showDeleteModal && selectedService && (
+        {showDeleteModal && selectedItem && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowDeleteModal(false)}
@@ -952,17 +1164,15 @@ const OrgService = () => {
                   <div className="p-2 rounded-xl" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
                     <AlertCircle className="w-6 h-6" style={{ color: '#EF4444' }} />
                   </div>
-                  <h2
-                    className="text-xl font-bold"
-                    style={{ fontFamily: "'Fraunces', serif", color: '#0B1220' }}
-                  >
-                    Delete Service
+                  <h2 className="text-xl font-bold text-[#0B1220]">
+                    Delete Requirement
                   </h2>
                 </div>
 
-                <p className="text-sm mb-6" style={{ color: '#64748B' }}>
-                  Are you sure you want to delete <span className="font-semibold" style={{ color: '#0B1220' }}>"{selectedService.name}"</span>? 
-                  This action cannot be undone.
+                <p className="text-sm mb-6 text-[#64748B]">
+                  Are you sure you want to delete <span className="font-semibold text-[#0B1220]">
+                    "{selectedItem.title}"
+                  </span>? This action cannot be undone.
                 </p>
 
                 <div className="flex gap-3">
@@ -1005,4 +1215,4 @@ const OrgService = () => {
   );
 };
 
-export default OrgService;
+export default ManageDocumentRequired;

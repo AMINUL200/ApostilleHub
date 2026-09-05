@@ -109,11 +109,12 @@ const ApostilleOfficerMyProfilePage = () => {
   const [regions, setRegions] = useState([]);
   const [services, setServices] = useState([]);
   const [selectedCountryId, setSelectedCountryId] = useState("");
-  
+
   // Service Region modal specific states
   const [serviceRegionRegions, setServiceRegionRegions] = useState([]);
-  const [isLoadingServiceRegionRegions, setIsLoadingServiceRegionRegions] = useState(false);
-  
+  const [isLoadingServiceRegionRegions, setIsLoadingServiceRegionRegions] =
+    useState(false);
+
   const fileInputRef = useRef(null);
   const documentFileInputRef = useRef(null);
 
@@ -273,17 +274,17 @@ const ApostilleOfficerMyProfilePage = () => {
   // Service Region country change handler (dedicated)
   const handleServiceRegionCountryChange = async (e) => {
     const countryId = e.target.value;
-    
+
     // Update country
     setServiceRegionFormData((prev) => ({
       ...prev,
       country_id: countryId,
       region_id: "", // Clear region when country changes
     }));
-    
+
     // Clear previous regions
     setServiceRegionRegions([]);
-    
+
     // Fetch new regions
     if (countryId) {
       await fetchServiceRegionRegions(countryId);
@@ -504,9 +505,7 @@ const ApostilleOfficerMyProfilePage = () => {
       }
     } catch (error) {
       console.error("Error deleting document:", error);
-      setErrorMessage(
-        error?.message || "Failed to delete document",
-      );
+      setErrorMessage(error?.message || "Failed to delete document");
     }
   };
 
@@ -525,9 +524,7 @@ const ApostilleOfficerMyProfilePage = () => {
       }
     } catch (error) {
       console.error("Error deleting service region:", error);
-      setErrorMessage(
-        error?.message || "Failed to delete service region",
-      );
+      setErrorMessage(error?.message || "Failed to delete service region");
     }
   };
 
@@ -570,7 +567,7 @@ const ApostilleOfficerMyProfilePage = () => {
   // Updated edit handler with proper region loading
   const handleEditServiceRegion = async (sr) => {
     setEditingServiceRegion(sr);
-    
+
     // Set form data with country
     setServiceRegionFormData({
       service_id: String(sr.service_id || ""),
@@ -578,13 +575,13 @@ const ApostilleOfficerMyProfilePage = () => {
       region_id: "", // Temporarily empty
       status: sr.status || "active",
     });
-    
+
     setShowServiceRegionModal(true);
-    
+
     // Fetch regions for the country
     if (sr.country_id) {
       await fetchServiceRegionRegions(sr.country_id);
-      
+
       // After regions are loaded, set the region_id
       setServiceRegionFormData((prev) => ({
         ...prev,
@@ -886,7 +883,6 @@ const ApostilleOfficerMyProfilePage = () => {
                   className="hidden"
                 />
               </div>
-
               <h2 className="text-xl font-bold mt-4 text-[#0B1220]">
                 {profileData.professional_name || profileData.user?.name}
               </h2>
@@ -895,21 +891,33 @@ const ApostilleOfficerMyProfilePage = () => {
                   ? "Verified Lawyer"
                   : "Lawyer"}
               </p>
+              
               <div className="flex items-center justify-center gap-2 mt-1">
                 {profileData.approval_status === "approved" ? (
                   <BadgeCheck className="w-4 h-4 text-[#10B981]" />
+                ) : profileData.approval_status === "under_review" ? (
+                  <AlertCircle className="w-4 h-4 text-[#0F4C81]" />
                 ) : (
                   <Clock className="w-4 h-4 text-[#F59E0B]" />
                 )}
+
                 <span
-                  className={`text-xs ${profileData.approval_status === "approved" ? "text-[#10B981]" : "text-[#F59E0B]"}`}
+                  className={`text-xs ${
+                    profileData.approval_status === "approved"
+                      ? "text-[#10B981]"
+                      : profileData.approval_status === "under_review"
+                        ? "text-[#0F4C81]"
+                        : "text-[#F59E0B]"
+                  }`}
                 >
                   {profileData.approval_status === "approved"
                     ? "Verified"
-                    : "Pending Approval"}
+                    : profileData.approval_status === "under_review"
+                      ? "Under Review"
+                      : "Pending Approval"}
                 </span>
               </div>
-
+              
               <div
                 className="mt-4 pt-4 border-t"
                 style={{ borderColor: "#E2E8F0" }}
@@ -943,7 +951,6 @@ const ApostilleOfficerMyProfilePage = () => {
                   </div>
                 </div>
               </div>
-
               <div className="mt-4 space-y-2 text-left">
                 <div className="flex items-center gap-3 text-sm">
                   <Mail className="w-4 h-4 text-[#94A3B8]" />
@@ -970,14 +977,13 @@ const ApostilleOfficerMyProfilePage = () => {
                   </span>
                 </div>
               </div>
-
-              <button
+              {/* <button
                 onClick={() => setShowPasswordModal(true)}
                 className="w-full mt-4 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-gray-100"
                 style={{ color: "#0F4C81", border: "1px solid #E2E8F0" }}
               >
                 Change Password
-              </button>
+              </button> */}
             </motion.div>
 
             {/* Countries of Operation */}

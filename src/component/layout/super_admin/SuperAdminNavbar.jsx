@@ -21,6 +21,7 @@ import {
   Activity,
   Zap,
 } from 'lucide-react';
+import { useAuthStore } from '../../../store/authStore';
 
 const SuperAdminNavbar = ({ setSidebarOpen, sidebarOpen }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -30,15 +31,30 @@ const SuperAdminNavbar = ({ setSidebarOpen, sidebarOpen }) => {
   const notificationRef = useRef(null);
   const navigate = useNavigate();
 
-  // Super Admin user data
+  // Get user data from auth store
+  const { user, logout } = useAuthStore();
+
+  // Super Admin user data - fallback if no user in store
   const userData = {
-    name: "John Doe",
-    email: "superadmin@apostillehub.com",
-    role: "Super Administrator",
-    avatar: null,
+    name: user?.name || "Super Admin",
+    email: user?.email || "superadmin@apostillehub.com",
+    role: user?.roles?.[0]?.name || "Super Administrator",
+    avatar: user?.profile_photo || null,
   };
 
-  // Notifications data
+
+  // Get user initials for avatar
+  const getUserInitials = (name) => {
+    if (!name) return 'SA';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Notifications data - can be fetched from API
   const notifications = [
     {
       id: 1,
@@ -96,7 +112,7 @@ const SuperAdminNavbar = ({ setSidebarOpen, sidebarOpen }) => {
   }, []);
 
   const handleLogout = () => {
-    console.log("Logging out...");
+    logout();
     navigate("/login");
   };
 
@@ -119,23 +135,50 @@ const SuperAdminNavbar = ({ setSidebarOpen, sidebarOpen }) => {
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Toggle sidebar"
             >
               <Menu className="w-5 h-5 text-gray-600" />
             </button>
 
-            
+            {/* Dynamic User Info */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: 'linear-gradient(135deg, #0F4C81, #1E6BB8)' }}>
+                {userData.avatar ? (
+                  <img
+                    src={userData.avatar}
+                    alt={userData.name}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  getUserInitials(userData.name)
+                )}
+              </div>
+              <div className="hidden sm:block">
+                <p className="text-sm font-semibold text-gray-900">
+                  {userData.name}
+                </p>
+                <p className="text-xs text-gray-500">{userData.role}</p>
+              </div>
+            </div>
           </div>
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
+              aria-label="Toggle dark mode"
+            >
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
 
-          
             {/* Notifications */}
             <div className="relative" ref={notificationRef}>
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative text-gray-600"
+                aria-label="Notifications"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -217,17 +260,18 @@ const SuperAdminNavbar = ({ setSidebarOpen, sidebarOpen }) => {
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+                aria-label="Profile menu"
               >
                 <div className="w-9 h-9 bg-gradient-to-br from-[#D4AF37] to-[#F4D03F] rounded-full flex items-center justify-center shadow-md">
                   {userData.avatar ? (
                     <img
                       src={userData.avatar}
-                      alt="Profile"
+                      alt={userData.name}
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
                     <span className="text-[#0B1220] text-sm font-bold">
-                      {userData.name.split(' ').map(n => n[0]).join('')}
+                      {getUserInitials(userData.name)}
                     </span>
                   )}
                 </div>
@@ -254,12 +298,12 @@ const SuperAdminNavbar = ({ setSidebarOpen, sidebarOpen }) => {
                         {userData.avatar ? (
                           <img
                             src={userData.avatar}
-                            alt="Profile"
+                            alt={userData.name}
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
                           <span className="text-white text-lg font-bold">
-                            {userData.name.split(' ').map(n => n[0]).join('')}
+                            {getUserInitials(userData.name)}
                           </span>
                         )}
                       </div>

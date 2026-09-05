@@ -64,6 +64,20 @@ const menuItems = [
     ],
   },
   {
+    id: "apostille-officers",
+    label: "Apostille Officers",
+    icon: Users,
+    // path: "/organization-admin/apostille-officers",
+    children: [
+      {
+        id: "all-apostille-officers",
+        label: "All Apostille Officers",
+        icon: Users,
+        path: "/organization-admin/apostille-officers",
+      },
+    ],
+  },
+  {
     id: "services",
     label: "Services",
     icon: Briefcase,
@@ -81,6 +95,13 @@ const menuItems = [
         path: "/organization-admin/services",
       },
       {
+        id: "required-documents",
+        label: "Required Documents",
+        icon: FileText,
+        path: "/organization-admin/services/req-documents",
+      },
+
+      {
         id: "processing-options",
         label: "Processing Options",
         icon: Clock,
@@ -91,6 +112,12 @@ const menuItems = [
         label: "Delivery Methods",
         icon: Truck,
         path: "/organization-admin/services/delivery-methods",
+      },
+      {
+        id: "delivery-methods-pricing",
+        label: "Delivery Methods Pricing",
+        icon: TagIcon,
+        path: "/organization-admin/services/delivery-methods/pricing",
       },
       // {
       //   id: "pricing",
@@ -155,12 +182,12 @@ const menuItems = [
         icon: Settings,
         path: "/organization-admin/smtp",
       },
-      // {
-      //   id: "profile",
-      //   label: "Organization Profile",
-      //   icon: Briefcase,
-      //   path: "/organization-admin/settings/profile",
-      // },
+      {
+        id: "site-settings",
+        label: "Site Settings",
+        icon: Settings,
+        path: "/organization-admin/site-settings",
+      },
       // {
       //   id: "notifications",
       //   label: "Notifications",

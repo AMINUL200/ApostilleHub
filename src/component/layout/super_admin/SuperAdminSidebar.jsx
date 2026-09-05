@@ -67,6 +67,10 @@ import {
   Lock,
   Key,
   Fingerprint,
+  Globe2,
+  Truck,
+  Folder,
+  TagIcon,
 } from "lucide-react";
 
 // Logo Component
@@ -94,6 +98,68 @@ const menuItems = [
     path: "/super-admin",
   },
   {
+    id: "apostille-officers",
+    label: "Apostille Officers",
+    icon: Users,
+    path: "/super-admin/apostille-officers",
+  },
+  {
+    id: "team",
+    label: "Staff Management",
+    icon: Users,
+    children: [
+      {
+        id: "all-staff",
+        label: "All Staff",
+        icon: Users,
+        path: "/super-admin/staff",
+      },
+    ],
+  },
+  {
+    id: "services",
+    label: "Services",
+    icon: Briefcase,
+    children: [
+      {
+        id: "service-categories",
+        label: "Service Categories",
+        icon: Folder,
+        path: "/super-admin/services/categories",
+      },
+      {
+        id: "services-list",
+        label: "Services",
+        icon: Briefcase,
+        path: "/super-admin/services",
+      },
+      {
+        id: "processing-options",
+        label: "Processing Options",
+        icon: Clock,
+        path: "/super-admin/services/processing-options",
+      },
+      {
+        id: "delivery-methods",
+        label: "Delivery Methods",
+        icon: Truck,
+        path: "/super-admin/services/delivery-methods",
+      },
+      {
+        id: "delivery-methods-pricing",
+        label: "Delivery Methods Pricing",
+        icon: TagIcon,
+        path: "/super-admin/services/delivery-methods/pricing",
+      },
+      // {
+      //   id: "pricing",
+      //   label: "Service Pricing",
+      //   icon: TagIcon,
+      //   path: "/organization-admin/services/pricing",
+      // },
+    ],
+  },
+  {
     id: "blog",
     label: "Blog",
     icon: Users,
@@ -104,6 +170,12 @@ const menuItems = [
     label: "FAQS",
     icon: Users,
     path: "/super-admin/faqs",
+  },
+  {
+    id: "country",
+    label: "Country",
+    icon: Globe2,
+    path: "/super-admin/country",
   },
   // {
   //   id: 'users',
@@ -235,43 +307,32 @@ const menuItems = [
   //     },
   //   ],
   // },
-  // {
-  //   id: 'settings',
-  //   label: 'Settings',
-  //   icon: Settings,
-  //   children: [
-  //     {
-  //       id: 'general',
-  //       label: 'General Settings',
-  //       icon: Settings,
-  //       path: '/super-admin/settings',
-  //     },
-  //     {
-  //       id: 'appearance',
-  //       label: 'Appearance',
-  //       icon: Palette,
-  //       path: '/super-admin/settings/appearance',
-  //     },
-  //     {
-  //       id: 'notifications',
-  //       label: 'Notifications',
-  //       icon: Bell,
-  //       path: '/super-admin/settings/notifications',
-  //     },
-  //     {
-  //       id: 'integrations',
-  //       label: 'Integrations',
-  //       icon: Globe,
-  //       path: '/super-admin/settings/integrations',
-  //     },
-  //     {
-  //       id: 'seo',
-  //       label: 'SEO Settings',
-  //       icon: Search,
-  //       path: '/super-admin/settings/seo',
-  //     },
-  //   ],
-  // },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    children: [
+      {
+        id: "smtp",
+        label: "SMTP Settings",
+        icon: Settings,
+        path: "/super-admin/smtp",
+      },
+      {
+        id: "site-settings",
+        label: "Site Settings",
+        icon: Palette,
+        path: "/super-admin/site-settings",
+      },
+
+      // {
+      //   id: 'seo',
+      //   label: 'SEO Settings',
+      //   icon: Search,
+      //   path: '/super-admin/settings/seo',
+      // },
+    ],
+  },
 ];
 
 // NOTE: `isOpen` / `setIsOpen` is now the SINGLE source of truth for:
